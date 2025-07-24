@@ -1,0 +1,202 @@
+metadata:
+  title: Joint simplified divorce - Cook County
+  short title: Joint simplified divorce
+  comment: This program helps you make the forms to end a marriage or civil union.
+  authors:
+    - Jim Graszer
+    - Matt Newsted
+---
+include:
+  - docassemble.AssemblyLine:assembly_line.yml
+  - docassemble.ILAO:ilao-interview-framework.yml
+  - docassemble.ILAO:shared-basic-questions.yml
+---
+objects:
+  - users: ALPeopleList.using(there_are_any=True)
+    
+---
+code: |
+  al_form_type = 'starts_case'
+  ilao_easy_form_title = "Joint simplified divorce"
+  ilao_easy_form_url = "https://www.illinoislegalaid.org/legal-information/joint-simplified-divorce-cook-county"
+  form_name = "Divorce"
+  github_user = 'IllinoisLegalAidOnline'
+  github_repo_name = 'docassemble-JointSimplifiedDivorce'
+  allowed_courts = ['Circuit']
+---
+# Road map
+sections:
+  - section_intro: Start
+  - section_download: Download  
+---
+# interview order block
+mandatory: True
+code: |
+  nav.set_section('section_intro')
+  sees_nav_bar
+  snapshot_start
+  set_progress(5)
+  accept_terms
+  e_signature
+
+  set_progress(100)
+  nav.set_section('section_download')
+  forms_assembling
+  snapshot_forms
+  get_docs_screen
+---
+code: |
+  stuff_to_snapshot = {
+  	'start_time': str(current_datetime().format_datetime()),
+  	'started_interview': True, 
+  	}
+
+  try:
+    stuff_to_snapshot['ip_address'] = device(ip=True)
+  except:
+    pass
+
+  stuff_to_snapshot['zip'] = showifdef('users[0].address.zip')
+
+  stuff_to_snapshot['downloaded_forms'] = showifdef('forms_assembling')
+
+  try:
+    stuff_to_snapshot['session_id'] = current_context().session
+  except:
+    pass
+  
+  store_variables_snapshot(
+  	data=stuff_to_snapshot, persistent=True
+  	)
+  snapshot_interview_state = True
+---
+code: |
+  snapshot_interview_state
+  snapshot_start = True  
+---
+code: |
+  reconsider('snapshot_interview_state')
+  snapshot_forms = True
+---
+id: welcome
+question: |
+  Divorce
+subquestion: |
+  Welcome to Illinois Legal Aid Online's **Joint simplified divorce - Cook County** Easy Form.
+
+  This program helps you make divorce forms to ask the court to end a marriage or civil union in Cook County, Illinois.
+
+  To learn more, read ILAO's guide to [**getting a divorce**](https://www.illinoislegalaid.org/node/30446).
+field: sees_nav_bar
+---
+id: e-signature
+question: |
+  Do you want to add your e-signature to your ${ form_name }?
+subquestion: |
+  This program can put “**/s/ ${users[0].name.full(middle='full')}**” where you would sign your name. The court will accept this as your signature.
+
+  If you do not add your **{e-signature}** now, you must sign your paper forms before you file and deliver them.
+
+  <div class="alert alert-info ilao-info" role="alert">
+    <h6 class="alert-heading">What it means to sign your forms</h6>
+    <p>By signing your <i>Petition for Divorce</i>, you are certifying that:</p>
+    <p><ul>
+      <li>Everything on the forms is true and correct, or you have been informed or you believe it is true and correct, and</li>
+      <li>You understand that making a false statement on the form is perjury and has penalties provided by law.</li>
+    </ul></p>
+  <p>See the <a href="https://www.ilga.gov/legislation/ilcs/documents/073500050k1-109.htm"><b>Code of Civil Procedure, 735 ILCS 5/1-109</b></a> for more information.</p>
+  </div>
+fields:
+  - "Add e-signature?": e_signature
+    datatype: yesnoradio
+terms:
+  - "e-signature": |
+      An e-signature is an electronic signature. It is a digital version of a signature that has the same effect as a hand-written signature. 
+---
+id: forms assembling
+continue button field: forms_assembling
+question: |
+  Almost done
+subquestion: |
+  After you click **Next**, it may take a few moments to finish making your forms.
+  
+  ###### You do not need to refresh your screen. Hang in there!
+  
+  [NEWLINE]
+---
+id: get docs screen
+event: get_docs_screen
+question: |
+  Download
+subquestion: |
+  
+  Your forms are ready. View and download your forms below. Click **:edit: Make changes** to fix any mistakes.
+
+  This program **does not file** your divorce forms. You will need to do this yourself. Learn about [**e-filing in Illinois**](https://www.illinoiscourts.gov/eservices/information-for-filers-without-lawyers).
+
+  ${ action_button_html(url_action('review_answers'), label=':edit: Make changes', color='success', size="md") }
+  
+  ${ al_user_bundle.download_list_html() }
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+
+  **Note:** This program **does not file** your forms. Learn about [**e-filing in Illinois**](https://www.illinoiscourts.gov/eservices/information-for-filers-without-lawyers).
+  
+  Thank you for using ILAO Easy Forms!
+under: |
+  % if not user_logged_in():
+  [${fa_icon("sign-in-alt", color="#0079d0", size="sm")} **Sign-in**](${url_of('login', next=interview_url())}) or [**create**](${url_of('register', next=interview_url())}) an ILAO Easy Form account to save your progress (optional).
+  % endif 
+
+  &nbsp;
+  ${ action_button_html(interview_url(i="docassemble.ILAO:feedback.yml", easy_form_interview=ilao_easy_form_url, easy_form_title=ilao_easy_form_title, easy_form_page=current_context().question_id, easy_form_variable=current_context().variable, local=False,reset=1), label=':comment: Was this program helpful?', color="#181c36", size="md", new_window=True) }
+---
+generic object: ALDocumentBundle
+template: x.get_email_copy
+content: |
+  Send a copy of your forms to your email
+---
+generic object: ALDocumentBundle
+template: x.send_email_template
+subject: |
+  Divorce forms
+content: |
+  Your forms are attached.
+  
+  Thanks for using ILAO Easy Forms!
+  
+  [Illinois Legal Aid Online](https://www.illinoislegalaid.org)
+---
+objects:
+  - cook_cover_sheet: ALDocument.using(title="Domestic Relations Cover Sheet", filename="cook_cover_sheet.pdf", has_addendum=False, enabled=True)
+---
+attachment:
+  variable name: cook_cover_sheet[i]
+  name: cook_cover_sheet
+  filename: cook_cover_sheet
+  skip undefined: True
+  editable: False
+  pdf template file: cook_cover_sheet.pdf
+  fields:
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent": ${ users[1].name_full() }
+    - "marriage_checkbox": ${ case_type_marriage }
+    - "civil_union_checkbox": ${ not case_type_marriage }
+    - "div_checkbox": ${ True }
+
+    - "involves_minors_yes": ${ file_with_kids }
+    - "involves_minors_no": ${ not file_with_kids }
+    - "previous_divorce_yes": ${ True if previous_cook_case_type == "divorce" else '' }
+    - "previous_divorce_no": ${ True if not previous_cook_case_type == "divorce" or previous_cook_case_type == "none" else '' }
+    - "previous_parentage_yes": ${ True if previous_cook_case_type == "parentage" else '' }
+    - "previous_parentage_no": ${ True if not previous_cook_case_type == "parentage" or previous_cook_case_type == "none" else '' }
+    - "previous_cook_case_date": ${ format_date(previous_cook_case_date, format='MMM d, yyyy') if previous_cook_case_type == "divorce" or previous_cook_case_type == "parentage" else '' }
+    - "previous_cook_case_number": ${ previous_cook_case_number if previous_cook_case_type == "divorce" or previous_cook_case_type == "parentage" else '' }
+    - "previous_cook_case_judge": ${ previous_cook_case_judge if previous_cook_case_type == "divorce" or previous_cook_case_type == "parentage" else '' }
+
+    - "pro_se_cb": ${ True }
+    - "petitioner__2": ${ users[0].name_full() }
+    - "preparer_address_line_1": ${ users[0].address.line_one(bare=True) }
+    - "preparer_address_line_2": ${ users[0].address.line_two() }
+    - "preparer_phone": ${ phone_number_formatted(users[0].phone_number) }
+    - "preparer_email": ${ users[0].email if users[0].has_email_address else ""}
