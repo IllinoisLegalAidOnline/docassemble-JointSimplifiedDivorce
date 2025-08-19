@@ -13,7 +13,9 @@ include:
 ---
 objects:
   - users: ALPeopleList.using(there_are_any=True)
-    
+  - item: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)
+  - debt: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)
+  - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
 code: |
   al_form_type = 'starts_case'
@@ -27,6 +29,11 @@ code: |
 # Road map
 sections:
   - section_intro: Start
+  - section_requirements: Requirements
+  - section_about: About you
+  - section_spouse: About your spouse
+  - section_property: Property and debt
+  - section_filing: Filing information
   - section_download: Download  
 ---
 # interview order block
@@ -36,9 +43,85 @@ code: |
   sees_nav_bar
   snapshot_start
   set_progress(5)
+  how_to_use
   accept_terms
-  e_signature
+  about_divorce
 
+  nav.set_section('section_requirements')
+  set_progress(15)
+  if not marriage_under_eight:
+    kickout
+  if not divorce_grounds:
+    kickout
+  if no_kids:
+    kickout
+  if not_pregnant:
+    kickout
+  if no_adoption:
+    kickout
+  if not live_in_illinois:
+    kickout
+  if not live_in_cook:
+    kickout
+  if not income_req:
+    kickout
+  if not retirement_req:
+    kickout
+  if not support_req:
+    kickout
+  if no_real_estate:
+    kickout
+  if not property_divided:
+    kickout
+  if not debts_divided:
+    kickout
+  can_continue
+
+  nav.set_section('section_about')
+  set_progress(30)
+  users[0].name.first
+  users[0].address.address
+  users[0].phone_number
+  users[0].birthdate
+  users[0].is_employed
+  users[0].income
+  if users[0].is_resident:
+    users[0].resident_date
+  else:
+    must_live_in_illinois
+  users[0].use_former_name
+
+  nav.set_section('section_spouse')
+  set_progress(50)
+  users[1].name.first
+  users[1].address.address
+  users[1].phone_number
+  users[1].birthdate
+  users[1].is_employed
+  users[1].income
+  if users[1].is_resident:
+    users[1].resident_date
+  else:
+    must_live_in_illinois
+  users[1].use_former_name
+
+  nav.set_section('section_property')
+  set_progress(70)
+  property_intro
+  if has_property:
+    item.gather()
+    property_lists_created
+  if has_debts:
+    debt.gather()
+    debt_lists_created
+
+  nav.set_section('section_filing')
+  set_progress(90)
+  marriage_date
+  marriage_city
+  case_type_marriage
+  previous_cook_case_type
+  e_signature
   set_progress(100)
   nav.set_section('section_download')
   forms_assembling
@@ -79,6 +162,7 @@ code: |
   snapshot_forms = True
 ---
 id: welcome
+continue button field: sees_nav_bar
 question: |
   Divorce
 subquestion: |
@@ -87,7 +171,658 @@ subquestion: |
   This program helps you make divorce forms to ask the court to end a marriage or civil union in Cook County, Illinois.
 
   To learn more, read ILAO's guide to [**getting a divorce**](https://www.illinoislegalaid.org/node/30446).
-field: sees_nav_bar
+---
+id: how to use
+continue button field: how_to_use
+question: |
+  Instructions
+subquestion: |
+  To complete this program, you will need to consider the following:
+
+  * You or your spouse must be a resident of Illinois for the past 90 days. 
+  * Your marriage or civil union cannot be longer than 8 years.
+  * Both parties **must agree on all of the terms** of the divorce, including property division and support waivers.
+  * Both parties must earn no more than $30,000 per year before taxes and combined income must be under $60,000.
+  * Gather necessary documents, such as tax returns and proof of income, to complete the forms accurately.
+  * This program is limited to Cook county residents only.
+
+  It could take 20 minutes to 40 minutes to finish this program. You can log in and save your work to return to later. 
+ 
+  ${ collapse_template(help_example) }  
+
+  Click on **{green words}** to learn what they mean. Some pages have a question mark in a circle ${ fa_icon("question-circle", color_css="#0dcaf0" ) } that helps explain things.
+---
+template: help_example
+subject: |
+  **You can click sections like this to show more information.**
+content: |  
+  This is an example of help. Click again to hide.
+---
+id: about 
+continue button field: about_divorce
+question: |
+  About Divorce
+subquestion: |
+  A **joint simplified divorce** is a court process that makes it easier to get a divorce. It can be used to end a marriage or civil union.
+
+  To learn more, read ILAO's guide about [**getting joint simplified divorce with no children**](https://www.illinoislegalaid.org/legal-information/joint-simplified-divorce-no-children).
+---
+########################## Requirements ######################
+
+id: kickout
+event: kickout
+question: |
+  Sorry
+subquestion: |
+  You can only use this program if you have a divorce or allocation of parental responsibilities case in Illinois or if you are planning to start one.
+
+  Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+id: marriage
+question: |
+  Was the marriage or civil union less than eight years?
+fields:
+  - no label: marriage_under_eight
+    datatype: yesnoradio
+---
+id: divorce grounds
+question: |
+  Have irreconcilable differences caused the irretrievable breakdown of the marriage or civil union?
+subquestion: |
+  Select **Yes** if:
+  
+  * You and your spouse have tried to fix the problems in your marriage or civil union, but could not, or
+  * The problems are so bad that trying to fix them is not best for your family.
+
+  ${ collapse_template(grounds_help) }  
+fields:
+  - no label: divorce_grounds
+    datatype: yesnoradio
+---
+template: grounds_help
+subject: |
+  **Learn more about irreconcilable differences**
+content: |  
+  **Irreconcilable differences** is the only reason required in Illinois for getting a divorce.
+
+  If you have been separated for 6 months or more, no other proof is needed to qualify for a divorce.
+
+  If you have been separated less than 6 months at the time of your divorce hearing you will have to show the judge that you and your spouse:
+
+  * Separated because you cannot get along anymore, and
+  * Tried to fix the problems in your marriage, but could not, or the problems are so bad that trying to fix them is not best for your family.
+---
+id: children
+question: |
+  Questions about children
+fields:
+  - Were any children born of the relationship?: no_kids
+    datatype: yesnoradio
+  - Are either you or your spouse pregnant?: not_pregnant
+    datatype: yesnoradio
+  - Were any children adopted during the relationship?: no_adoption
+    datatype: yesnoradio
+---
+id: residency
+question: |
+  Residency
+fields:
+  - Has you or your spouse lived in Illinois for the last 90 days?: live_in_illinois
+    datatype: yesnoradio
+  - Do you or your spouse currently live in Cook County?: live_in_cook
+    datatype: yesnoradio
+---
+id: income and retirement
+question: |
+  Income & retirement
+fields:
+  - Do both you and your spouse make under $30,000 per year?: income_req
+    datatype: yesnoradio
+  - If either of you have retirement benefits, are they each in your own name and worth $10,000 or less?: retirement_req
+    datatype: yesnoradio
+  - Are both you and your spouse able to support yourselves?: support_req
+    datatype: yesnoradio
+---
+id: property and debts
+Question: |
+  Property and debts
+fields:
+  - Do either of you own any real estate?: no_real_estate
+    datatype: yesnoradio
+  - Have you agreed how you will split up any property over $100?: property_divided
+    datatype: yesnoradio
+  - Have you agreed how you will split up any debts?: debts_divided
+    datatype: yesnoradio
+---
+id: qualified
+question: |
+  You can file for a joint simplified divorce in Cook County
+subquestion: |
+  Based on your answers, you qualify for a joint simplified divorce in Cook County.
+
+  The next screens will ask questions to fill out your forms.
+continue button field: can_continue  
+---
+######################## ABOUT YOU ################################
+id: your name
+sets:
+  - users[0].name.first
+  - users[0].name.last
+  - users[0].name.middle
+  - users[0].name.suffix
+question: |
+  What is your name?
+fields:
+  - code: |
+      users[0].name_fields()
+---
+id: users address
+sets:
+  - users[0].address.address
+  - users[0].address.city
+  - users[0].address.state
+  - users[0].address.zip
+question: |
+  What is your address?
+subquestion: |
+  **This address will appear on your form.** If you do not want this, click **Back** to keep your address hidden.
+fields:
+  - Street address: users[0].address.address
+    address autocomplete: True
+  - Address line 2: users[0].address.unit
+    required: False
+  - City: users[0].address.city
+  - State: users[0].address.state
+    code: |
+      states_list()
+    default: IL      
+  - ZIP code: users[0].address.zip
+  - County where you currently live: users[0].residence_county
+    code: |
+      court_list._load_courts()["address_county"].unique()     
+---
+id: your contact information
+question: |
+  What is your contact information?
+subquestion: |
+  The court or other parties might need to contact you about this case.
+
+  **This information will appear on your court forms.**
+  
+  If you do not want to list a phone number on your forms, leave it blank.
+
+  If you have an email address, you must list it. Be sure to check your email daily, otherwise you may miss important court documents or information about your case.
+
+  ${ collapse_template(contact_info_help) }  
+fields:  
+  - Phone number: users[0].phone_number
+    datatype: al_international_phone
+    required: False
+  - label: |
+      Do you have an email address?
+    field: users[0].has_email_address      
+    datatype: yesnoradio
+  - note: |
+      This email address will appear on your court forms. Be sure to check 
+      this email daily, otherwise you may miss important information about 
+      your case.
+    show if:
+      variable: users[0].has_email_address
+      is: True
+  - Email address: users[0].email    
+    datatype: email
+    show if: 
+      variable: users[0].has_email_address
+      is: True
+---
+template: contact_info_help
+subject: |
+  **What if I don't want to list my email address?**
+content: |  
+  If you do not want to enter your personal email address, you can create a new email account to get email about your case.
+  
+  To make a new email account try one of these email services:
+  
+  * [**Gmail**](https://accounts.google.com/SignUp)
+  * [**Outlook**](https://outlook.live.com/owa/?nlp=1&signup=1)
+  * [**Yahoo**](https://login.yahoo.com/account/create?.lang=en-US&.intl=us)
+---
+id: birthdate
+question: |
+  When were you born?
+fields:
+  - Date of birth: users[0].birthdate
+    datatype: BirthDate
+    alMax: ${ today().format("yyyy-MM-dd") }
+---
+id: employment status
+question: |
+  Are you currently employed?
+fields:
+  - no label: users[0].is_employed
+    datatype: yesnoradio
+  - What is your occupation?: users[0].occupation
+    show if: users[0].is_employed
+---
+id: income sources
+question: |
+  What is your gross annual income from all sources?
+fields:
+  - no label: users[0].income
+    datatype: money
+---
+id: live in IL
+question: |
+  Do you live in Illinois?
+fields:
+  - no label: users[0].is_resident
+    datatype: yesnoradio  
+---
+id: how long in IL
+question: |
+  How many years have you lived in Illinois?
+fields: 
+  - no label: users[0].resident_date
+    datatype: int
+---
+id: must live in IL
+event: must_live_in_illinois
+question: |
+  Sorry
+subquestion: |
+  You must live in Illinois if you want to file for divorce in Illinois.
+  
+  If you want to file for divorce outside Illinois, you can use the [**Legal Services Corporation website**](https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help) to find a legal aid organization in another state.
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+sets:
+  - users[0].aliases[0].first
+  - users[0].aliases[0].last
+  - users[0].aliases[0].middle
+  - users[0].aliases[0].suffix
+id: user former name
+question: |
+  Do you want to go back to a former or maiden name?
+fields:
+  - no label: users[0].use_former_name
+    datatype: yesnoradio
+  - note: |
+      Enter your former or maiden name.
+    show if:
+      variable: users[0].use_former_name
+      is: True
+  - First name: users[0].aliases[0].first
+    show if:
+      variable: users[0].use_former_name
+      is: True
+  - Middle name: users[0].aliases[0].middle
+    required: False
+    show if:
+      variable: users[0].use_former_name
+      is: True
+  - Last name: users[0].aliases[0].last
+    show if:
+      variable: users[0].use_former_name
+      is: True
+  - Suffix: users[0].aliases[0].suffix
+    code: |
+      name_suffix()
+    required: False
+    show if:
+      variable: users[0].use_former_name
+      is: True
+---
+######################## Spouse ################################
+id: spouses name
+sets:
+  - users[1].name.first
+  - users[1].name.last
+  - users[1].name.middle
+  - users[1].name.suffix
+question: |
+  What is your spouse's name?
+fields:
+  - code: |
+      users[1].name_fields()
+---
+id: spouses address
+sets:
+  - users[1].address.address
+  - users[1].address.city
+  - users[1].address.state
+  - users[1].address.zip
+question: |
+  What is ${ users[1].name_full() } address?
+subquestion: |
+  **This address will appear on your form.** If you do not want this, click **Back** to keep your address hidden.
+fields:
+  - Street address: users[1].address.address
+    address autocomplete: True
+  - Address line 2: users[1].address.unit
+    required: False
+  - City: users[1].address.city
+  - State: users[1].address.state
+    code: |
+      states_list()
+    default: IL      
+  - ZIP code: users[1].address.zip
+  - County where you currently live: users[1].residence_county
+    code: |
+      court_list._load_courts()["address_county"].unique()     
+---
+id: spouses contact information
+question: |
+  What is ${ users[1].name_full() } contact information?
+subquestion: |
+  The court or other parties might need to contact you about this case.
+
+  **This information will appear on your court forms.**
+  
+  If you do not want to list a phone number on your forms, leave it blank.
+
+  If you have an email address, you must list it. Be sure to check your email daily, otherwise you may miss important court documents or information about your case.
+
+  ${ collapse_template(contact_info_help) }  
+fields:  
+  - Phone number: users[1].phone_number
+    datatype: al_international_phone
+    required: False
+  - label: |
+      Do you have an email address?
+    field: users[1].has_email_address      
+    datatype: yesnoradio
+  - note: |
+      This email address will appear on your court forms. Be sure to check 
+      this email daily, otherwise you may miss important information about 
+      your case.
+    show if:
+      variable: users[1].has_email_address
+      is: True
+  - Email address: users[1].email    
+    datatype: email
+    show if: 
+      variable: users[1].has_email_address
+      is: True
+---
+id: spouses birthdate
+question: |
+  When was ${ users[1].name_full() } born?
+fields:
+  - Date of birth: users[1].birthdate
+    datatype: BirthDate
+    alMax: ${ today().format("yyyy-MM-dd") }
+---
+id: spouses employment status
+question: |
+  Does ${ users[1].name_full() } have a job?
+fields:
+  - no label: users[1].is_employed
+    datatype: yesnoradio
+  - What is your occupation?: users[1].occupation
+    show if: users[1].is_employed
+---
+id: spouses income sources
+question: |
+  What is ${ users[1].name_full() }'s gross annual income from all sources?
+fields:
+  - no label: users[1].income
+    datatype: money
+---
+id: spouses live in IL
+question: |
+  Do you live in Illinois?
+fields:
+  - no label: users[1].is_resident
+    datatype: yesnoradio  
+---
+id: spouses how long in IL
+question: |
+  How long has ${ users[1].name_full() } lived in Illinois?
+fields: 
+  - no label: users[1].resident_date
+    datatype: int
+---
+sets:
+  - users[1].aliases[0].first
+  - users[1].aliases[0].last
+  - users[1].aliases[0].middle
+  - users[1].aliases[0].suffix
+id: user former name
+question: |
+  Does ${ users[1].name_full() } want to go back to a former or maiden name?
+fields:
+  - no label: users[1].use_former_name
+    datatype: yesnoradio
+  - note: |
+      Enter ${ users[1].name_full() }'s former or maiden name.
+    show if: users[1].use_former_name
+  - First name: users[1].aliases[0].first
+    show if: users[1].use_former_name
+  - Middle name: users[1].aliases[0].middle
+    required: False
+    show if: users[1].use_former_name
+  - Last name: users[1].aliases[0].last
+    show if: users[1].use_former_name
+  - Suffix: users[1].aliases[0].suffix
+    code: |
+      name_suffix()
+    required: False
+    show if: users[1].use_former_name
+---
+######################## Property and debt ################################
+id: property and debts
+question: |
+  Separation of property and liabilities.
+subquestion: |
+  ** placeholder for section intro**
+continue button field: property_intro
+---
+id: property division 
+question: |
+  Do you have any property valued at over $100?
+fields:
+  - no label: has_property
+    datatype: yesnoradio
+---
+id: property overview
+question: |
+  Do you have any property valued at over $100?
+subquestion: |
+  So far you have told us about:
+
+  ${ property_table }
+
+fields:
+  - Add another?: item.there_is_another
+    datatype: yesnoradio
+---
+table: property_table
+rows: item
+columns:
+  - Description: row_item.name.text
+  - Who: row_item.who_gets
+---
+id: property details
+question: |
+  Details for the ${ordinal(i)} item of property
+fields:
+  - Description: item[i].name.text
+    maxlength: 25
+  - Who will be respondible for this debt?: item[i].who_gets
+    datatype: yesnoradio
+    choices:
+      - ${ users[0].name_full() }: true
+      - ${ users[1].name_full() }: false
+---
+code: |
+  item[i].name.text
+  item[i].complete = True
+---
+code: |
+  user0_property_list = []
+  user1_property_list = []
+  for j in range(len(item)):
+    if defined('item[j]'):
+      if item[j].who_gets:
+        user0_property_list.append(item[j].name.text)
+      else:
+        user1_property_list.append(item[j].name.text)
+
+  property_lists_created = True
+---
+code: |
+  if item.number_gathered() == 18:
+    item.there_is_another = False
+---
+id: debt intro 
+question: |
+  Are there any debts/liabilities to be divided?
+fields:
+  - no label: has_debts
+    datatype: yesnoradio
+---
+id: additional debts
+question: |
+  Do you have any other debts?
+subquestion: |
+  So far you have told us about:
+
+  ${ debts_table }
+
+fields:
+  - Add another?: debt.there_is_another
+    datatype: yesnoradio
+---
+table: debts_table
+rows: debt
+columns:
+  - Name: row_item.name.text
+  - Who: row_item.who_gets
+---
+id: debt information
+question: |
+  Details for the ${ordinal(i)} debt 
+fields:
+  - Name of liability: debt[i].name.text
+    maxlength: 25
+  - Who will be respondible for this debt?: debt[i].who_gets
+    datatype: radio
+    choices:
+      - ${ users[0].name_full() }: true
+      - ${ users[1].name_full() }: false
+---
+code: |
+  debt[i].name.text
+  debt[i].complete = True 
+---
+code: |
+  user0_debt_list = []
+  user1_debt_list = []
+  for j in range(len(debt)):
+    if defined('debt[j]'):
+      if debt[j].who_gets:
+        user0_debt_list.append(debt[j].name.text)
+      else:
+        user1_debt_list.append(debt[j].name.text)
+        
+  debt_lists_created = True
+---
+code: |
+  if debt.number_gathered() == 18:
+    debt.there_is_another = False
+---
+######################## Filing information ################################
+id: marriage date
+question: |
+  When were you married?
+subquestion: |
+  If you are ending a civil union, enter the date you were united.
+
+  ${ collapse_template(civil_unions_help) }  
+fields:
+  - Date of marriage or civil union: marriage_date
+    datatype: BirthDate
+    alMax: ${ today().format("yyyy-MM-dd") }
+---
+template: civil_unions_help
+subject: |
+  **Learn more about civil unions**
+content: |  
+  A civil union is a legal relationship between two people, either of the same or different sex. It provides all of the legal obligations, responsibilities, protections and benefits that the law of Illinois gives to married couples.
+
+  A civil union is not the same as a marriage.
+
+  * A civil union does not provide the same federal benefits and protections as a marriage, like social security survivors' and spousal benefits, or federal income tax rights for married couples.
+  * Civil unions aren't recognized in all states.
+---
+id: marriage location
+question: |
+  Where were you married?
+subquestion: |
+  If you are ending a civil union, enter the location where the civil union occurred.
+  
+  ${ collapse_template(civil_unions_help) }  
+fields:
+  - City: marriage_city
+    maxlength: 30
+  - County: marriage_county
+    code: |
+      court_list._load_courts()["address_county"].unique()      
+  - State: marriage_state
+    default: IL
+    code: |
+      states_list()
+  - Date of separation: separation_date
+    datatype: ThreePartsDate
+    alMax: ${ today() }
+---
+id: cook case type
+question: |
+  What kind of case are you filing?
+subquestion: |
+  This information is used by the Cook County Circuit Clerk. You should be able to confirm by looking at your marriage license or civil union license.
+
+  ${ collapse_template(civil_unions_help) } 
+fields:
+  - I am filing a petition to end a: case_type_marriage
+    datatype: radio
+    choices:
+      - "Marriage": True
+      - "Civil union": False
+---
+id: any previous cook cases
+question: |
+  Have you filed any divorce or parentage cases with ${users[1].name_full() } in Cook County before?
+subquestion: |
+  This will help the court clerk in Cook County assign your case to the correct location. If you were involved in more than one, choose the most recent.
+fields:
+  - no label: previous_cook_case_type
+    datatype: radio
+    choices:
+      - I was in an earlier **divorce** case with ${ users[1].name_full() }.: divorce
+      - I was in an earlier **parentage** case with ${ users[1].name_full() } involving children we had together.: parentage
+      - No earlier divorce or parentage cases were filed in Cook County.: none
+  - Date case was filed: previous_cook_case_date
+    datatype: ThreePartsDate
+    alMax: ${ today().format("yyyy-MM-dd") }
+    required: False
+    js show if: |
+      val("previous_cook_case_type") === "divorce" || val("previous_cook_case_type") === "parentage" 
+  - Case number: previous_cook_case_number
+    maxlength: 24
+    required: False
+    js show if: |
+      val("previous_cook_case_type") === "divorce" || val("previous_cook_case_type") === "parentage" 
+  - Name of judge: previous_cook_case_judge
+    maxlength: 45
+    required: False
+    js show if: |
+      val("previous_cook_case_type") === "divorce" || val("previous_cook_case_type") === "parentage" 
 ---
 id: e-signature
 question: |
@@ -113,6 +848,7 @@ terms:
   - "e-signature": |
       An e-signature is an electronic signature. It is a digital version of a signature that has the same effect as a hand-written signature. 
 ---
+###################### Assemble/Download #########################
 id: forms assembling
 continue button field: forms_assembling
 question: |
@@ -130,12 +866,11 @@ question: |
   Download
 subquestion: |
   
-  Your forms are ready. View and download your forms below. Click **:edit: Make changes** to fix any mistakes.
+  Your forms are ready. View and download your forms below. 
 
   This program **does not file** your divorce forms. You will need to do this yourself. Learn about [**e-filing in Illinois**](https://www.illinoiscourts.gov/eservices/information-for-filers-without-lawyers).
 
-  ${ action_button_html(url_action('review_answers'), label=':edit: Make changes', color='success', size="md") }
-  
+ 
   ${ al_user_bundle.download_list_html() }
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
@@ -167,8 +902,14 @@ content: |
   
   [Illinois Legal Aid Online](https://www.illinoislegalaid.org)
 ---
+###################### ATTACHMENTS ##########################
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, cook_cover_sheet, joint_simplified_divorce_petition], filename="completed_parenting_plan.pdf", title="All forms", enabled=True)
+---
 objects:
   - cook_cover_sheet: ALDocument.using(title="Domestic Relations Cover Sheet", filename="cook_cover_sheet.pdf", has_addendum=False, enabled=True)
+  - instructions: ALDocument.using(title="Instructions", filename="instructions.docx", enabled=True, has_addendum=False)
+  - joint_simplified_divorce_petition: ALDocument.using(title="Joint Simplified Divorce", filename="joint_simplified_divorce_petition.pdf", enabled=True, has_addendum=False)
 ---
 attachment:
   variable name: cook_cover_sheet[i]
@@ -184,8 +925,8 @@ attachment:
     - "civil_union_checkbox": ${ not case_type_marriage }
     - "div_checkbox": ${ True }
 
-    - "involves_minors_yes": ${ file_with_kids }
-    - "involves_minors_no": ${ not file_with_kids }
+    - "involves_minors_yes": ${ no_kids }
+    - "involves_minors_no": ${ not no_kids }
     - "previous_divorce_yes": ${ True if previous_cook_case_type == "divorce" else '' }
     - "previous_divorce_no": ${ True if not previous_cook_case_type == "divorce" or previous_cook_case_type == "none" else '' }
     - "previous_parentage_yes": ${ True if previous_cook_case_type == "parentage" else '' }
@@ -200,3 +941,103 @@ attachment:
     - "preparer_address_line_2": ${ users[0].address.line_two() }
     - "preparer_phone": ${ phone_number_formatted(users[0].phone_number) }
     - "preparer_email": ${ users[0].email if users[0].has_email_address else ""}
+---
+attachment:
+  variable name: instructions[i]
+  name: instructions
+  filename: instructions
+  skip undefined: True
+  docx template file: instructions.docx
+---
+attachment:
+  variable name: joint_simplified_divorce_petition[i]
+  name: joint_simplified_divorce_petition
+  filename: joint_simplified_divorce_petition
+  skip undefined: True
+  editable: False
+  pdf template file: joint_simplified_divorce_petition.pdf
+  fields:
+    - "case_number": ${ case_number }
+    - "date_today": ${ today().format("MM/dd/yyyy") }
+    - "user0_name": ${ users[0].name_full() }
+    - "user1_name": ${ users[1].name_full() }
+
+    - "marriage_date": ${ marriage_date.format("MM/dd/yyyy") }
+    - "marriage_city": ${ marriage_city }
+    - "marriage_county": ${ marriage_county }
+    - "marriage_state": ${ marriage_state }
+    - "separation_date": ${ separation_date.format("MM/dd/yyyy") }
+
+    - "user0_address": ${ users[0].address.line_one(bare=True) }
+    - "user0_city": ${ users[0].address.city }
+    - "user0_state": ${ users[0].address.state }
+    - "user0_zip": ${ users[0].address.zip }
+    - "user0_county": ${ users[0].residence_county }
+    - "user0_birthyear": ${ users[0].birthdate.year }
+    - "user0_age": ${ users[0].age_in_years() }
+    - "user0_email": ${ users[0].email if users[0].has_email_address else '' }
+    - "user0_job": ${ users[0].occupation if users[0].is_employed else '' }
+    - "user0_income": ${ users[0].income }
+    - "ILResidence1": ${ users[0].is_resident }
+    - "user0_IL_years": ${ users[0].resident_date if users[0].is_resident else '' }
+    - "user0_former_name": ${ users[0].aliases[0].full(middle="full") if users[0].use_former_name else '' }
+
+    - "user1_address": ${ users[1].address.line_one(bare=True) }
+    - "user1_city": ${ users[1].address.city }
+    - "user1_state": ${ users[1].address.state }   
+    - "user1_zip": ${ users[1].address.zip }
+    - "user1_county": ${ users[1].residence_county }   
+    - "user1_birthyear": ${ users[1].birthdate.year }
+    - "user1_age": ${ users[1].age_in_years() }
+    - "user1_email": ${ users[1].email if users[1].has_email_address else '' }
+    - "user1_job": ${ users[1].occupation if users[1].is_employed else '' }
+    - "user1_income": ${ users[1].income }    
+    - "ILResidence2": ${ users[0].is_resident }
+    - "user1_IL_years": ${ users[1].resident_date if users[1].is_resident else '' }
+    - "user1_former_name": ${ users[1].aliases[0].full(middle="full") if users[1].use_former_name else '' }
+
+    # Property fields
+    - "user0_property1": ${ user0_property_list[0] if len(user0_property_list) > 0 else '' }
+    - "user0_property2": ${ user0_property_list[1] if len(user0_property_list) > 1 else '' }
+    - "user0_property3": ${ user0_property_list[2] if len(user0_property_list) > 2 else '' }
+    - "user0_property4": ${ user0_property_list[3] if len(user0_property_list) > 3 else '' }
+    - "user0_property5": ${ user0_property_list[4] if len(user0_property_list) > 4 else '' }
+    - "user0_property6": ${ user0_property_list[5] if len(user0_property_list) > 5 else '' }
+    - "user0_property7": ${ user0_property_list[6] if len(user0_property_list) > 6 else '' }
+    - "user0_property8": ${ user0_property_list[7] if len(user0_property_list) > 7 else '' }
+    - "user0_property9": ${ user0_property_list[8] if len(user0_property_list) > 8 else '' }
+
+    - "user1_property1": ${ user1_property_list[0] if len(user1_property_list) > 0 else '' }
+    - "user1_property2": ${ user1_property_list[1] if len(user1_property_list) > 1 else '' }
+    - "user1_property3": ${ user1_property_list[2] if len(user1_property_list) > 2 else '' }
+    - "user1_property4": ${ user1_property_list[3] if len(user1_property_list) > 3 else '' }
+    - "user1_property5": ${ user1_property_list[4] if len(user1_property_list) > 4 else '' }
+    - "user1_property6": ${ user1_property_list[5] if len(user1_property_list) > 5 else '' }
+    - "user1_property7": ${ user1_property_list[6] if len(user1_property_list) > 6 else '' }
+    - "user1_property8": ${ user1_property_list[7] if len(user1_property_list) > 7 else '' }
+    - "user1_property9": ${ user1_property_list[8] if len(user1_property_list) > 8 else '' }
+
+    # Debt fields (now using the lists)
+    - "user0_debt1": ${ user0_debt_list[0] if len(user0_debt_list) > 0 else '' }
+    - "user0_debt2": ${ user0_debt_list[1] if len(user0_debt_list) > 1 else '' }
+    - "user0_debt3": ${ user0_debt_list[2] if len(user0_debt_list) > 2 else '' }
+    - "user0_debt4": ${ user0_debt_list[3] if len(user0_debt_list) > 3 else '' }
+    - "user0_debt5": ${ user0_debt_list[4] if len(user0_debt_list) > 4 else '' }
+    - "user0_debt6": ${ user0_debt_list[5] if len(user0_debt_list) > 5 else '' }
+    - "user0_debt7": ${ user0_debt_list[6] if len(user0_debt_list) > 6 else '' }
+    - "user0_debt8": ${ user0_debt_list[7] if len(user0_debt_list) > 7 else '' }
+    - "user0_debt9": ${ user0_debt_list[8] if len(user0_debt_list) > 8 else '' }
+
+    - "user1_debt1": ${ user1_debt_list[0] if len(user1_debt_list) > 0 else '' }
+    - "user1_debt2": ${ user1_debt_list[1] if len(user1_debt_list) > 1 else '' }
+    - "user1_debt3": ${ user1_debt_list[2] if len(user1_debt_list) > 2 else '' }
+    - "user1_debt4": ${ user1_debt_list[3] if len(user1_debt_list) > 3 else '' }
+    - "user1_debt5": ${ user1_debt_list[4] if len(user1_debt_list) > 4 else '' }
+    - "user1_debt6": ${ user1_debt_list[5] if len(user1_debt_list) > 5 else '' }
+    - "user1_debt7": ${ user1_debt_list[6] if len(user1_debt_list) > 6 else '' }
+    - "user1_debt8": ${ user1_debt_list[7] if len(user1_debt_list) > 7 else '' }
+    - "user1_debt9": ${ user1_debt_list[8] if len(user1_debt_list) > 8 else '' }
+
+    # Digital signatures
+    - "user0_signature": ${ users[0].name_full() if e_signature else '' }
+    - "user1_signature": ${ users[1].name_full() if e_signature else '' }
