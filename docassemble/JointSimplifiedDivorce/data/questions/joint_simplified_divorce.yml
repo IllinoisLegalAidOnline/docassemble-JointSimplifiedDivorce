@@ -164,7 +164,7 @@ code: |
 id: welcome
 continue button field: sees_nav_bar
 question: |
-  Divorce
+  Joint simplified divorce - Cook County
 subquestion: |
   Welcome to Illinois Legal Aid Online's **Joint simplified divorce - Cook County** Easy Form.
 
@@ -201,7 +201,7 @@ content: |
 id: about 
 continue button field: about_divorce
 question: |
-  About Divorce
+  About joint simplified divorce
 subquestion: |
   A **joint simplified divorce** is a court process that makes it easier to get a divorce. It can be used to end a marriage or civil union.
 
@@ -270,7 +270,7 @@ id: residency
 question: |
   Residency
 fields:
-  - Has you or your spouse lived in Illinois for the last 90 days?: live_in_illinois
+  - Has either you or your spouse lived in Illinois for the last 90 days?: live_in_illinois
     datatype: yesnoradio
   - Do you or your spouse currently live in Cook County?: live_in_cook
     datatype: yesnoradio
@@ -299,7 +299,7 @@ fields:
 ---
 id: qualified
 question: |
-  You can file for a joint simplified divorce in Cook County
+  Qualified to file for a joint simplified divorce in Cook County
 subquestion: |
   Based on your answers, you qualify for a joint simplified divorce in Cook County.
 
@@ -326,9 +326,7 @@ sets:
   - users[0].address.state
   - users[0].address.zip
 question: |
-  What is your address?
-subquestion: |
-  **This address will appear on your form.** If you do not want this, click **Back** to keep your address hidden.
+  Where do you live?
 fields:
   - Street address: users[0].address.address
     address autocomplete: True
@@ -350,10 +348,6 @@ question: |
 subquestion: |
   The court or other parties might need to contact you about this case.
 
-  **This information will appear on your court forms.**
-  
-  If you do not want to list a phone number on your forms, leave it blank.
-
   If you have an email address, you must list it. Be sure to check your email daily, otherwise you may miss important court documents or information about your case.
 
   ${ collapse_template(contact_info_help) }  
@@ -366,7 +360,7 @@ fields:
     field: users[0].has_email_address      
     datatype: yesnoradio
   - note: |
-      This email address will appear on your court forms. Be sure to check 
+      Be sure to check 
       this email daily, otherwise you may miss important information about 
       your case.
     show if:
@@ -383,6 +377,8 @@ subject: |
   **What if I don't want to list my email address?**
 content: |  
   If you do not want to enter your personal email address, you can create a new email account to get email about your case.
+  
+  If you do not want to list a phone number on your forms, leave it blank.
   
   To make a new email account try one of these email services:
   
@@ -411,8 +407,8 @@ id: income sources
 question: |
   What is your gross annual income from all sources?
 fields:
-  - no label: users[0].income
-    datatype: money
+  - Total yearly income before taxes: users[0].income
+    datatype: currency
 ---
 id: live in IL
 question: |
@@ -425,8 +421,9 @@ id: how long in IL
 question: |
   How many years have you lived in Illinois?
 fields: 
-  - no label: users[0].resident_date
-    datatype: int
+  - Years of residence in Illinois: users[0].resident_date
+    datatype: number
+    min: 0
 ---
 id: must live in IL
 event: must_live_in_illinois
@@ -498,8 +495,6 @@ sets:
   - users[1].address.zip
 question: |
   What is ${ users[1].name_full() } address?
-subquestion: |
-  **This address will appear on your form.** If you do not want this, click **Back** to keep your address hidden.
 fields:
   - Street address: users[1].address.address
     address autocomplete: True
@@ -519,31 +514,29 @@ id: spouses contact information
 question: |
   What is ${ users[1].name_full() } contact information?
 subquestion: |
-  The court or other parties might need to contact you about this case.
+  The court or other parties might need to contact them about this case.
 
-  **This information will appear on your court forms.**
-  
-  If you do not want to list a phone number on your forms, leave it blank.
+  If they do not want to list a phone number on the forms, leave it blank.
 
-  If you have an email address, you must list it. Be sure to check your email daily, otherwise you may miss important court documents or information about your case.
+  If they have an email address, they must list it. ${ users[1].name_full() } should check their email daily, otherwise they may miss important court documents or information about the case.
 
   ${ collapse_template(contact_info_help) }  
 fields:  
-  - Phone number: users[1].phone_number
+  - ${ users[1].name_full() }'s phone number: users[1].phone_number
     datatype: al_international_phone
     required: False
   - label: |
-      Do you have an email address?
+      Does ${ users[1].name_full() } have an email address?
     field: users[1].has_email_address      
     datatype: yesnoradio
   - note: |
-      This email address will appear on your court forms. Be sure to check 
-      this email daily, otherwise you may miss important information about 
-      your case.
+      ${ users[1].name_full() } should check 
+      this email daily, otherwise they may miss important information about 
+      the case.
     show if:
       variable: users[1].has_email_address
       is: True
-  - Email address: users[1].email    
+  - ${ users[1].name_full() }'s email address: users[1].email    
     datatype: email
     show if: 
       variable: users[1].has_email_address
@@ -563,19 +556,19 @@ question: |
 fields:
   - no label: users[1].is_employed
     datatype: yesnoradio
-  - What is your occupation?: users[1].occupation
+  - What is their occupation?: users[1].occupation
     show if: users[1].is_employed
 ---
 id: spouses income sources
 question: |
   What is ${ users[1].name_full() }'s gross annual income from all sources?
 fields:
-  - no label: users[1].income
-    datatype: money
+  - Total yearly income before taxes: users[1].income
+    datatype: currency
 ---
 id: spouses live in IL
 question: |
-  Do you live in Illinois?
+  Does ${ users[1].name_full() } live in Illinois?
 fields:
   - no label: users[1].is_resident
     datatype: yesnoradio  
@@ -584,8 +577,9 @@ id: spouses how long in IL
 question: |
   How long has ${ users[1].name_full() } lived in Illinois?
 fields: 
-  - no label: users[1].resident_date
-    datatype: int
+  - Years of residence in Illinois: users[1].resident_date
+    datatype: number
+    min: 0
 ---
 sets:
   - users[1].aliases[0].first
@@ -617,7 +611,7 @@ fields:
 ######################## Property and debt ################################
 id: property and debts
 question: |
-  Separation of property and liabilities.
+  Separation of property and liabilities
 subquestion: |
   ** placeholder for section intro**
 continue button field: property_intro
@@ -631,7 +625,7 @@ fields:
 ---
 id: property overview
 question: |
-  Do you have any property valued at over $100?
+  Do you have any other property valued at over $100?
 subquestion: |
   So far you have told us about:
 
@@ -653,8 +647,8 @@ question: |
 fields:
   - Description: item[i].name.text
     maxlength: 25
-  - Who will be respondible for this debt?: item[i].who_gets
-    datatype: yesnoradio
+  - Who will get this property?: item[i].who_gets
+    datatype: radio
     choices:
       - ${ users[0].name_full() }: true
       - ${ users[1].name_full() }: false
@@ -681,7 +675,7 @@ code: |
 ---
 id: debt intro 
 question: |
-  Are there any debts/liabilities to be divided?
+  Are there any debts or liabilities to be divided?
 fields:
   - no label: has_debts
     datatype: yesnoradio
@@ -708,9 +702,9 @@ id: debt information
 question: |
   Details for the ${ordinal(i)} debt 
 fields:
-  - Name of liability: debt[i].name.text
+  - Name of debt: debt[i].name.text
     maxlength: 25
-  - Who will be respondible for this debt?: debt[i].who_gets
+  - Who will be respondible for paying this debt?: debt[i].who_gets
     datatype: radio
     choices:
       - ${ users[0].name_full() }: true
@@ -768,22 +762,22 @@ subquestion: |
   
   ${ collapse_template(civil_unions_help) }  
 fields:
+  - State: marriage_state
+    default: IL
+    code: |
+      states_list()
   - City: marriage_city
     maxlength: 30
   - County: marriage_county
     code: |
       court_list._load_courts()["address_county"].unique()      
-  - State: marriage_state
-    default: IL
-    code: |
-      states_list()
   - Date of separation: separation_date
     datatype: ThreePartsDate
     alMax: ${ today() }
 ---
 id: cook case type
 question: |
-  What kind of case are you filing?
+  Are you ending a marriage or a civil union?
 subquestion: |
   This information is used by the Cook County Circuit Clerk. You should be able to confirm by looking at your marriage license or civil union license.
 
@@ -826,18 +820,18 @@ fields:
 ---
 id: e-signature
 question: |
-  Do you want to add your e-signature to your ${ form_name }?
+  Do you want to add your e-signature to your forms?
 subquestion: |
   This program can put “**/s/ ${users[0].name.full(middle='full')}**” where you would sign your name. The court will accept this as your signature.
 
-  If you do not add your **{e-signature}** now, you must sign your paper forms before you file and deliver them.
+  If you do not add your **{e-signature}** now, you must sign your paper forms before you file them.
 
   <div class="alert alert-info ilao-info" role="alert">
     <h6 class="alert-heading">What it means to sign your forms</h6>
-    <p>By signing your <i>Petition for Divorce</i>, you are certifying that:</p>
+    <p>By signing your <i>Joint Petition for Simplified Dissolution</i>, you are certifying that:</p>
     <p><ul>
       <li>Everything on the forms is true and correct, or you have been informed or you believe it is true and correct, and</li>
-      <li>You understand that making a false statement on the form is perjury and has penalties provided by law.</li>
+      <li>You understand that making a false statement on the forms is perjury and has penalties provided by law.</li>
     </ul></p>
   <p>See the <a href="https://www.ilga.gov/legislation/ilcs/documents/073500050k1-109.htm"><b>Code of Civil Procedure, 735 ILCS 5/1-109</b></a> for more information.</p>
   </div>
@@ -865,11 +859,9 @@ event: get_docs_screen
 question: |
   Download
 subquestion: |
-  
-  Your forms are ready. View and download your forms below. 
+  Your forms are ready. View and download your forms below. Click **:edit: Make changes** to fix any mistakes.
 
-  This program **does not file** your divorce forms. You will need to do this yourself. Learn about [**e-filing in Illinois**](https://www.illinoiscourts.gov/eservices/information-for-filers-without-lawyers).
-
+  This program **does not file** your forms. You will need to do this yourself. Learn about [**e-filing in Illinois**](https://www.illinoiscourts.gov/eservices/information-for-filers-without-lawyers).
  
   ${ al_user_bundle.download_list_html() }
 
@@ -909,7 +901,7 @@ objects:
 objects:
   - cook_cover_sheet: ALDocument.using(title="Domestic Relations Cover Sheet", filename="cook_cover_sheet.pdf", has_addendum=False, enabled=True)
   - instructions: ALDocument.using(title="Instructions", filename="instructions.docx", enabled=True, has_addendum=False)
-  - joint_simplified_divorce_petition: ALDocument.using(title="Joint Simplified Divorce", filename="joint_simplified_divorce_petition.pdf", enabled=True, has_addendum=False)
+  - joint_simplified_divorce_petition: ALDocument.using(title="Joint Simplified Petition for Dissolution forms", filename="joint_simplified_divorce_petition.pdf", enabled=True, has_addendum=False)
 ---
 attachment:
   variable name: cook_cover_sheet[i]
