@@ -1061,22 +1061,22 @@ attachment:
     - "user0_email": ${ users[0].email if users[0].has_email_address else '' }
     - "user0_job": ${ users[0].occupation if users[0].is_employed else '' }
     - "user0_income": ${ thousands(users[0].income, show_decimals=True) }
-    - "ILResidence1": ${ users[0].is_resident }
-    - "user0_IL_years": ${ int(users[0].resident_date) if users[0].is_resident else '' }
+    - "ILResidence1": ${ word(yesno(users[0].address.state == "IL")) }
+    - "user0_IL_years": ${ int(users[0].resident_date) if users[0].address.state == "IL" else 'N/A' }
     - "user0_former_name": ${ users[0].aliases[0].full(middle="full") if users[0].use_former_name else '' }
 
     - "user1_address": ${ users[1].address.line_one(bare=True) }
     - "user1_city": ${ users[1].address.city }
     - "user1_state": ${ users[1].address.state }   
     - "user1_zip": ${ users[1].address.zip }
-    - "user1_county": ${ users[1].residence_county }   
+    - "user1_county": ${ users[1].address.county }   
     - "user1_birthyear": ${ users[1].birthdate.year }
     - "user1_age": ${ users[1].age_in_years() }
     - "user1_email": ${ users[1].email if users[1].has_email_address else '' }
     - "user1_job": ${ users[1].occupation if users[1].is_employed else '' }
     - "user1_income": ${ thousands(users[1].income, show_decimals=True) }
-    - "ILResidence2": ${ users[0].is_resident }
-    - "user1_IL_years": ${ int(users[1].resident_date) if users[1].is_resident else '' }
+    - "ILResidence2": ${ word(yesno(users[1].address.state == "IL")) }
+    - "user1_IL_years": ${ int(users[1].resident_date) if users[1].address.state == "IL" else 'N/A' }
     - "user1_former_name": ${ users[1].aliases[0].full(middle="full") if users[1].use_former_name else '' }
 
     # Property lists
