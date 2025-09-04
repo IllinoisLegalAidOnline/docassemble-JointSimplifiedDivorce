@@ -10,6 +10,7 @@ include:
   - docassemble.AssemblyLine:assembly_line.yml
   - docassemble.ILAO:ilao-interview-framework.yml
   - docassemble.ILAO:shared-basic-questions.yml
+  - joint_simplified_divorce_review.yml
 ---
 objects:
   - users: ALPeopleList.using(there_are_any=True)
@@ -19,9 +20,9 @@ objects:
 ---
 code: |
   al_form_type = 'starts_case'
-  ilao_easy_form_title = "Joint simplified divorce"
+  ilao_easy_form_title = "Joint Simplified Divorce"
   ilao_easy_form_url = "https://www.illinoislegalaid.org/legal-information/joint-simplified-divorce-cook-county"
-  form_name = "Divorce"
+  form_name = "Joint Simplified Divorce"
   github_user = 'IllinoisLegalAidOnline'
   github_repo_name = 'docassemble-JointSimplifiedDivorce'
   allowed_courts = ['Circuit']
@@ -84,11 +85,11 @@ code: |
   users[0].phone_number
   users[0].birthdate
   users[0].is_employed
-  users[0].income
-  if users[0].is_resident:
+  if users[0].income > 30000:
+    income_kickout_user = 0
+    income_kickout
+  if users[0].address.state == "IL":
     users[0].resident_date
-  else:
-    must_live_in_illinois
   users[0].use_former_name
 
   nav.set_section('section_spouse')
@@ -98,10 +99,13 @@ code: |
   users[1].phone_number
   users[1].birthdate
   users[1].is_employed
-  users[1].income
-  if users[1].is_resident:
+  if users[1].income > 30000:
+    income_kickout_user = 1
+    income_kickout
+  if users[1].address.state == "IL":
     users[1].resident_date
-  else:
+
+  if users[0].address.state != "IL" and users[1].address.state != "IL":
     must_live_in_illinois
   users[1].use_former_name
 
@@ -118,10 +122,15 @@ code: |
   nav.set_section('section_filing')
   set_progress(90)
   marriage_date
-  marriage_city
+  calc_marriage
+  if marriage_length.years >= 8:
+    marriage_kickout
+  marriage_state
+  separation_date
   case_type_marriage
   previous_cook_case_type
-  e_signature
+  users[0].e_signature
+  users[1].e_signature
   set_progress(100)
   nav.set_section('section_download')
   forms_assembling
@@ -208,15 +217,51 @@ subquestion: |
   To learn more, read ILAO's guide about [**getting joint simplified divorce with no children**](https://www.illinoislegalaid.org/legal-information/joint-simplified-divorce-no-children).
 ---
 ########################## Requirements ######################
-
-id: kickout
+id:  kickout
 event: kickout
+question: |
+  Sorry you do not qualify
+subquestion: |
+  To qualify for **${ form_name }** both parties must meet the following:
+  
+  - The marriage or similar relationship lasted less than 8 years.
+  - The relationship ended due to unresolved disagreements, and the parties are now separated.
+  - No children were born or adopted during the relationship. Neither person is pregnant.
+  - Neither person depends on the other for support, or both agree to waive support rights.
+  - Both people agree they do not want support payments from each other.
+  - Neither person has any ownership in real estate property.
+  - Neither person has retirement benefits, unless they are in small individual retirement accounts worth less than $10,000 total.
+  - The total value of all property they own together (minus any debts) is less than $50,000.
+  - Combined yearly income is less than $60,000, and neither earns more than $30,000 per year.
+  - Both people have shared all their assets, debts, and tax records with each other.
+  - Both people must have have an agreement on dividing assets over $100 and responsible debts.
+
+  Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+id: income kickout
+event: income_kickout
 question: |
   Sorry
 subquestion: |
-  You can only use this program if you have a divorce or allocation of parental responsibilities case in Illinois or if you are planning to start one.
-
-  Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
+  You can only use this program if your annual income is $30,000 or less.
+  % if defined('income_kickout_user') and income_kickout_user == 0:
+  Your income is above the limit.
+  % elif defined('income_kickout_user') and income_kickout_user == 1:
+  Your spouse's income is above the limit.
+  % endif
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+id: marriage kickout
+event: marriage_kickout
+question: |
+  Sorry
+subquestion: |
+  Marriage or civil union can be no more than 8 years for **${ form_name }**
 buttons:
   - Exit: exit
   - Restart: restart
@@ -336,11 +381,16 @@ fields:
   - State: users[0].address.state
     code: |
       states_list()
-    default: IL      
   - ZIP code: users[0].address.zip
-  - County where you currently live: users[0].residence_county
+  - County: users[0].address.county
     code: |
-      court_list._load_courts()["address_county"].unique()     
+      court_list._load_courts()["address_county"].unique()      
+    js show if: |
+      val('users[0].address.state') === "IL"
+  - County: users[0].address.county
+    maxlength: 25
+    js show if: |
+      val('users[0].address.state') != "IL"
 ---
 id: your contact information
 question: |
@@ -409,13 +459,6 @@ question: |
 fields:
   - Total yearly income before taxes: users[0].income
     datatype: currency
----
-id: live in IL
-question: |
-  Do you live in Illinois?
-fields:
-  - no label: users[0].is_resident
-    datatype: yesnoradio  
 ---
 id: how long in IL
 question: |
@@ -506,9 +549,15 @@ fields:
       states_list()
     default: IL      
   - ZIP code: users[1].address.zip
-  - County where you currently live: users[1].residence_county
+  - County: users[1].address.county
     code: |
-      court_list._load_courts()["address_county"].unique()     
+      court_list._load_courts()["address_county"].unique()      
+    js show if: |
+      val('users[1].address.state') === "IL"
+  - County: users[1].address.county
+    maxlength: 25
+    js show if: |
+      val('users[1].address.state') != "IL"
 ---
 id: spouses contact information
 question: |
@@ -566,13 +615,6 @@ fields:
   - Total yearly income before taxes: users[1].income
     datatype: currency
 ---
-id: spouses live in IL
-question: |
-  Does ${ users[1].name_full() } live in Illinois?
-fields:
-  - no label: users[1].is_resident
-    datatype: yesnoradio  
----
 id: spouses how long in IL
 question: |
   How long has ${ users[1].name_full() } lived in Illinois?
@@ -618,19 +660,18 @@ continue button field: property_intro
 ---
 id: property division 
 question: |
-  Do you have any property valued at over $100?
+  Do you or your spouse have any property valued at over $100?
 fields:
   - no label: has_property
     datatype: yesnoradio
 ---
 id: property overview
 question: |
-  Do you have any other property valued at over $100?
+  Do you or your spouse have any property valued at over $100?
 subquestion: |
   So far you have told us about:
 
   ${ property_table }
-
 fields:
   - Add another?: item.there_is_another
     datatype: yesnoradio
@@ -639,7 +680,11 @@ table: property_table
 rows: item
 columns:
   - Description: row_item.name.text
-  - Who: row_item.who_gets
+  - Goes to: users[0].name_full() if row_item.who_gets else users[1].name_full()
+  - Edit property: |
+      action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
 ---
 id: property details
 question: |
@@ -647,7 +692,7 @@ question: |
 fields:
   - Description: item[i].name.text
     maxlength: 25
-  - Who will get this property?: item[i].who_gets
+  - Goes to: item[i].who_gets
     datatype: radio
     choices:
       - ${ users[0].name_full() }: true
@@ -657,6 +702,8 @@ code: |
   item[i].name.text
   item[i].complete = True
 ---
+depends on:
+- item
 code: |
   user0_property_list = []
   user1_property_list = []
@@ -682,7 +729,7 @@ fields:
 ---
 id: additional debts
 question: |
-  Do you have any other debts?
+  Are there any other debts?
 subquestion: |
   So far you have told us about:
 
@@ -696,13 +743,17 @@ table: debts_table
 rows: debt
 columns:
   - Name: row_item.name.text
-  - Who: row_item.who_gets
+  - Goes to: users[0].name_full() if row_item.who_gets else users[1].name_full()
+  - Edit debt: |
+      action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
 ---
 id: debt information
 question: |
   Details for the ${ordinal(i)} debt 
 fields:
-  - Name of debt: debt[i].name.text
+  - Name of debt/liability: debt[i].name.text
     maxlength: 25
   - Who will be respondible for paying this debt?: debt[i].who_gets
     datatype: radio
@@ -714,6 +765,8 @@ code: |
   debt[i].name.text
   debt[i].complete = True 
 ---
+depends on:
+- debt
 code: |
   user0_debt_list = []
   user1_debt_list = []
@@ -740,7 +793,7 @@ subquestion: |
   ${ collapse_template(civil_unions_help) }  
 fields:
   - Date of marriage or civil union: marriage_date
-    datatype: BirthDate
+    datatype: ThreePartsDate
     alMax: ${ today().format("yyyy-MM-dd") }
 ---
 template: civil_unions_help
@@ -754,6 +807,10 @@ content: |
   * A civil union does not provide the same federal benefits and protections as a marriage, like social security survivors' and spousal benefits, or federal income tax rights for married couples.
   * Civil unions aren't recognized in all states.
 ---
+code: |
+  marriage_length = date_difference(marriage_date, today())
+  calc_marriage = True
+---
 id: marriage location
 question: |
   Where were you married?
@@ -763,7 +820,6 @@ subquestion: |
   ${ collapse_template(civil_unions_help) }  
 fields:
   - State: marriage_state
-    default: IL
     code: |
       states_list()
   - City: marriage_city
@@ -771,8 +827,20 @@ fields:
   - County: marriage_county
     code: |
       court_list._load_courts()["address_county"].unique()      
+    js show if: |
+      val('marriage_state') === "IL"
+  - County: marriage_county
+    maxlength: 25
+    js show if: |
+      val('marriage_state') != "IL"
+---
+id: separation date
+question: |
+  When was the separation?
+fields:
   - Date of separation: separation_date
     datatype: ThreePartsDate
+    alMin: ${ marriage_date }
     alMax: ${ today() }
 ---
 id: cook case type
@@ -822,21 +890,45 @@ id: e-signature
 question: |
   Do you want to add your e-signature to your forms?
 subquestion: |
-  This program can put “**/s/ ${users[0].name.full(middle='full')}**” where you would sign your name. The court will accept this as your signature.
+  This program can put “**/s/ ${ users[0].name_full() }**” where you would sign your name. The court will accept this as your signature.
 
   If you do not add your **{e-signature}** now, you must sign your paper forms before you file them.
 
   <div class="alert alert-info ilao-info" role="alert">
-    <h6 class="alert-heading">What it means to sign your forms</h6>
-    <p>By signing your <i>Joint Petition for Simplified Dissolution</i>, you are certifying that:</p>
+    <h6 class="alert-heading">What it means to sign forms</h6>
+    <p>By signing this **${ form_name }** and certifying that:</p>
     <p><ul>
-      <li>Everything on the forms is true and correct, or you have been informed or you believe it is true and correct, and</li>
-      <li>You understand that making a false statement on the forms is perjury and has penalties provided by law.</li>
+      <li>Everything on the forms is true and correct, or have been informed or believe it is true and correct, and</li>
+      <li>Understand that making a false statement on the forms is perjury and has penalties provided by law.</li>
     </ul></p>
   <p>See the <a href="https://www.ilga.gov/legislation/ilcs/documents/073500050k1-109.htm"><b>Code of Civil Procedure, 735 ILCS 5/1-109</b></a> for more information.</p>
   </div>
 fields:
-  - "Add e-signature?": e_signature
+  - "Add e-signature?": users[0].e_signature
+    datatype: yesnoradio
+terms:
+  - "e-signature": |
+      An e-signature is an electronic signature. It is a digital version of a signature that has the same effect as a hand-written signature. 
+---
+id: spouse e-signature
+question: |
+  Do they want to add an e-signature to their forms?
+subquestion: |
+  This program can put “**/s/ ${ users[1].name_full() }**” where for their name. The court will accept this as their signature.
+
+  If they do not add their **{e-signature}** now, they must sign their paper forms before filing.
+
+  <div class="alert alert-info ilao-info" role="alert">
+    <h6 class="alert-heading">What it means to sign forms</h6>
+    <p>By signing this **${ form_name }** and certifying that:</p>
+    <p><ul>
+      <li>Everything on the forms is true and correct, or have been informed or believe it is true and correct, and</li>
+      <li>Understand that making a false statement on the forms is perjury and has penalties provided by law.</li>
+    </ul></p>
+  <p>See the <a href="https://www.ilga.gov/legislation/ilcs/documents/073500050k1-109.htm"><b>Code of Civil Procedure, 735 ILCS 5/1-109</b></a> for more information.</p>
+  </div>
+fields:
+  - "Add e-signature?": users[1].e_signature
     datatype: yesnoradio
 terms:
   - "e-signature": |
@@ -859,10 +951,12 @@ event: get_docs_screen
 question: |
   Download
 subquestion: |
-  Your forms are ready. View and download your forms below. Click **:edit: Make changes** to fix any mistakes.
+  Your form is ready. View and download your form below. Click **Make changes** to fix any mistakes.
 
   This program **does not file** your forms. You will need to do this yourself. Learn about [**e-filing in Illinois**](https://www.illinoiscourts.gov/eservices/information-for-filers-without-lawyers).
  
+  ${ action_button_html(url_action('review_answers'), label=':edit: Make changes', color='success', size="md") }
+
   ${ al_user_bundle.download_list_html() }
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
@@ -913,10 +1007,7 @@ attachment:
   fields:
     - "petitioner__1": ${ users[0].name_full() }
     - "respondent": ${ users[1].name_full() }
-    - "marriage_checkbox": ${ case_type_marriage }
-    - "civil_union_checkbox": ${ not case_type_marriage }
-    - "div_checkbox": ${ True }
-
+    - "joint_simplified_div": ${ True }
     - "involves_minors_yes": ${ no_kids }
     - "involves_minors_no": ${ not no_kids }
     - "previous_divorce_yes": ${ True if previous_cook_case_type == "divorce" else '' }
@@ -964,14 +1055,14 @@ attachment:
     - "user0_city": ${ users[0].address.city }
     - "user0_state": ${ users[0].address.state }
     - "user0_zip": ${ users[0].address.zip }
-    - "user0_county": ${ users[0].residence_county }
+    - "user0_county": ${ users[0].address.county }
     - "user0_birthyear": ${ users[0].birthdate.year }
     - "user0_age": ${ users[0].age_in_years() }
     - "user0_email": ${ users[0].email if users[0].has_email_address else '' }
     - "user0_job": ${ users[0].occupation if users[0].is_employed else '' }
-    - "user0_income": ${ users[0].income }
+    - "user0_income": ${ thousands(users[0].income, show_decimals=True) }
     - "ILResidence1": ${ users[0].is_resident }
-    - "user0_IL_years": ${ users[0].resident_date if users[0].is_resident else '' }
+    - "user0_IL_years": ${ int(users[0].resident_date) if users[0].is_resident else '' }
     - "user0_former_name": ${ users[0].aliases[0].full(middle="full") if users[0].use_former_name else '' }
 
     - "user1_address": ${ users[1].address.line_one(bare=True) }
@@ -983,53 +1074,19 @@ attachment:
     - "user1_age": ${ users[1].age_in_years() }
     - "user1_email": ${ users[1].email if users[1].has_email_address else '' }
     - "user1_job": ${ users[1].occupation if users[1].is_employed else '' }
-    - "user1_income": ${ users[1].income }    
+    - "user1_income": ${ thousands(users[1].income, show_decimals=True) }
     - "ILResidence2": ${ users[0].is_resident }
-    - "user1_IL_years": ${ users[1].resident_date if users[1].is_resident else '' }
+    - "user1_IL_years": ${ int(users[1].resident_date) if users[1].is_resident else '' }
     - "user1_former_name": ${ users[1].aliases[0].full(middle="full") if users[1].use_former_name else '' }
 
-    # Property fields
-    - "user0_property1": ${ user0_property_list[0] if len(user0_property_list) > 0 else '' }
-    - "user0_property2": ${ user0_property_list[1] if len(user0_property_list) > 1 else '' }
-    - "user0_property3": ${ user0_property_list[2] if len(user0_property_list) > 2 else '' }
-    - "user0_property4": ${ user0_property_list[3] if len(user0_property_list) > 3 else '' }
-    - "user0_property5": ${ user0_property_list[4] if len(user0_property_list) > 4 else '' }
-    - "user0_property6": ${ user0_property_list[5] if len(user0_property_list) > 5 else '' }
-    - "user0_property7": ${ user0_property_list[6] if len(user0_property_list) > 6 else '' }
-    - "user0_property8": ${ user0_property_list[7] if len(user0_property_list) > 7 else '' }
-    - "user0_property9": ${ user0_property_list[8] if len(user0_property_list) > 8 else '' }
+    # Property lists
+    - "user0_property": ${ comma_and_list(user0_property_list) if len(user0_property_list) > 0 else '' }
+    - "user1_property": ${ comma_and_list(user1_property_list) if len(user1_property_list) > 0 else '' }
 
-    - "user1_property1": ${ user1_property_list[0] if len(user1_property_list) > 0 else '' }
-    - "user1_property2": ${ user1_property_list[1] if len(user1_property_list) > 1 else '' }
-    - "user1_property3": ${ user1_property_list[2] if len(user1_property_list) > 2 else '' }
-    - "user1_property4": ${ user1_property_list[3] if len(user1_property_list) > 3 else '' }
-    - "user1_property5": ${ user1_property_list[4] if len(user1_property_list) > 4 else '' }
-    - "user1_property6": ${ user1_property_list[5] if len(user1_property_list) > 5 else '' }
-    - "user1_property7": ${ user1_property_list[6] if len(user1_property_list) > 6 else '' }
-    - "user1_property8": ${ user1_property_list[7] if len(user1_property_list) > 7 else '' }
-    - "user1_property9": ${ user1_property_list[8] if len(user1_property_list) > 8 else '' }
-
-    # Debt fields (now using the lists)
-    - "user0_debt1": ${ user0_debt_list[0] if len(user0_debt_list) > 0 else '' }
-    - "user0_debt2": ${ user0_debt_list[1] if len(user0_debt_list) > 1 else '' }
-    - "user0_debt3": ${ user0_debt_list[2] if len(user0_debt_list) > 2 else '' }
-    - "user0_debt4": ${ user0_debt_list[3] if len(user0_debt_list) > 3 else '' }
-    - "user0_debt5": ${ user0_debt_list[4] if len(user0_debt_list) > 4 else '' }
-    - "user0_debt6": ${ user0_debt_list[5] if len(user0_debt_list) > 5 else '' }
-    - "user0_debt7": ${ user0_debt_list[6] if len(user0_debt_list) > 6 else '' }
-    - "user0_debt8": ${ user0_debt_list[7] if len(user0_debt_list) > 7 else '' }
-    - "user0_debt9": ${ user0_debt_list[8] if len(user0_debt_list) > 8 else '' }
-
-    - "user1_debt1": ${ user1_debt_list[0] if len(user1_debt_list) > 0 else '' }
-    - "user1_debt2": ${ user1_debt_list[1] if len(user1_debt_list) > 1 else '' }
-    - "user1_debt3": ${ user1_debt_list[2] if len(user1_debt_list) > 2 else '' }
-    - "user1_debt4": ${ user1_debt_list[3] if len(user1_debt_list) > 3 else '' }
-    - "user1_debt5": ${ user1_debt_list[4] if len(user1_debt_list) > 4 else '' }
-    - "user1_debt6": ${ user1_debt_list[5] if len(user1_debt_list) > 5 else '' }
-    - "user1_debt7": ${ user1_debt_list[6] if len(user1_debt_list) > 6 else '' }
-    - "user1_debt8": ${ user1_debt_list[7] if len(user1_debt_list) > 7 else '' }
-    - "user1_debt9": ${ user1_debt_list[8] if len(user1_debt_list) > 8 else '' }
+    # Debt lists
+    - "user0_debt": ${ comma_and_list(user0_debt_list) if len(user0_debt_list) > 0 else '' }
+    - "user1_debt": ${ comma_and_list(user1_debt_list) if len(user1_debt_list) > 0 else '' }
 
     # Digital signatures
-    - "user0_signature": ${ users[0].name_full() if e_signature else '' }
-    - "user1_signature": ${ users[1].name_full() if e_signature else '' }
+    - "user0_signature": ${ users[0].name_full() if users[0].e_signature else '' }
+    - "user1_signature": ${ users[1].name_full() if users[1].e_signature else '' }

@@ -1,0 +1,171 @@
+#################### REVIEW SCREEN #########################
+id: review screen
+event: review_answers
+question: |
+  Review screen
+subquestion: |
+  Edit your answers below.
+review:
+  - note: |
+      <h4>About You</h4>
+  - Edit: users[0].name.first
+    button: |
+      **Your name:**
+      ${ users[0].name_full() }
+  - Edit: users[0].address.address
+    button: |
+      **Your address:**
+      
+      ${ users[0].address.block() }
+
+      **County:** ${ users[0].address.county }
+  - Edit: users[0].phone_number
+    button: |
+      **Your phone number:**
+      % if users[0].phone_number == "":
+      No phone number entered
+      % else:
+      ${ phone_number_formatted(users[0].phone_number) }
+      % endif
+
+      **Your email address:**
+      % if users[0].email == "":
+      No email address entered
+      % else:
+      ${ users[0].email }
+      % endif
+  - Edit: users[0].birthdate
+    button: |
+      **Your birthdate:**
+      ${ users[0].birthdate.format("MM/dd/yyyy") }
+  - Edit: users[0].is_employed
+    button: |
+      **Your employment status:**
+      ${ 'Employed' if users[0].is_employed else 'Not employed' }
+
+      ${ users[0].occupation if users[0].is_employed else '' }
+  - Edit: users[0].resident_date
+    button: |
+      **Years in Illinois:**
+      ${ int(users[0].resident_date) }
+  - Edit: users[0].use_former_name
+    button: |
+      **Use former name:**
+      ${ 'Yes' if users[0].use_former_name else 'No' }
+  - Edit: users[0].e_signature
+    button: |
+      **E-signature:**
+      ${ 'Yes' if users[0].e_signature else 'No' }
+
+  - note: |
+      <h4>About Your Spouse</h4>
+  - Edit: users[1].name.first
+    button: |
+      **Spouse's name:**
+      ${ users[1].name_full() }
+  - Edit: users[1].address.address
+    button: |
+      **Spouse's address:**
+
+      ${ users[1].address.block() }
+
+      **County:** ${ users[1].address.county }
+  - Edit: users[1].phone_number
+    button: |
+      **Spouse's phone number:**
+      % if users[1].phone_number == "":
+      No phone number entered
+      % else:
+      ${ phone_number_formatted(users[1].phone_number) }
+      % endif
+
+      **Your email address:**
+      % if users[1].email == "":
+      No email address entered
+      % else:
+      ${ users[1].email }
+      % endif
+  - Edit: users[1].birthdate
+    button: |
+      **Spouse's birthdate:**
+      ${ users[1].birthdate.format("MM/dd/yyyy") }
+  - Edit: users[1].is_employed
+    button: |
+      **Spouse's employment status:**
+      ${ 'Employed' if users[1].is_employed else 'Not employed' }
+
+      ${ users[1].occupation if users[1].is_employed else '' }
+  - Edit: users[1].resident_date
+    button: |
+      **Spouse's years in Illinois:**
+      ${ int(users[1].resident_date) }
+  - Edit: users[1].use_former_name
+    button: |
+      **Spouse use former name:**
+      ${ 'Yes' if users[1].use_former_name else 'No' }
+  - Edit: users[1].e_signature
+    button: |
+      **Spouse E-signature:**
+      ${ 'Yes' if users[1].e_signature else 'No' }
+  - note: |
+      <h4>Property and Debt</h4>
+  - Edit: has_property
+    button: |
+      **Have property over $100?**
+      ${ 'Yes' if has_property else 'No' }
+  - Edit: item.revisit
+    button: |
+      **Property items**
+
+      ${ property_table }
+  - Edit: has_debts
+    button: |
+      **Have debts?**
+      ${ 'Yes' if has_debts else 'No' }
+  - Edit: debt.revisit
+    button: |
+      **Debt items**
+
+      ${ debts_table }
+    show if: has_debts
+  - note: |
+      <h4>Filing Information</h4>
+  - Edit: marriage_date
+    button: |
+      **Marriage date:**
+      ${ marriage_date.format("MM/dd/yyyy") }
+  - Edit: marriage_state
+    button: |
+      **Marriage location:** ${ marriage_city }, ${ marriage_state } 
+      **County:** ${ marriage_county }
+  - Edit: separation_date
+    button: |
+      **Separation date:**
+      ${ separation_date.format("MM/dd/yyyy") }
+  - Edit: case_type_marriage
+    button: |
+      **Case type:**
+      ${ 'Marriage' if case_type_marriage else 'Civil Union' }
+  - Edit: previous_cook_case_type
+    button: |
+      **Previous Cook County case:**
+      ${ previous_cook_case_type }
+---
+id: property review screen
+continue button field: item.revisit
+question: |
+  Make changes to the division of property:
+subquestion: |
+  ${ property_table }
+
+  ${ item.add_action() }
+---
+id: debt review screen
+continue button field: debt.revisit
+question: |
+  Make changes to the division of debt:
+subquestion: |
+  ${ debts_table }
+
+  ${ debt.add_action() }
+---
