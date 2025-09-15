@@ -16,6 +16,9 @@ objects:
   - users: ALPeopleList.using(there_are_any=True)
   - item: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)
   - debt: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)
+
+
+  
   - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
 code: |
@@ -96,6 +99,8 @@ code: |
   set_progress(50)
   users[1].name.first
   users[1].address.address
+  if (users[0].address.state != "IL" and users[1].address.state != "IL") and (users[0].address.county != "Cook" and users[1].address.county != "Cook"):
+    must_live_in_illinois
   users[1].phone_number
   users[1].birthdate
   users[1].is_employed
@@ -104,9 +109,6 @@ code: |
     income_kickout
   if users[1].address.state == "IL":
     users[1].resident_date
-
-  if users[0].address.state != "IL" and users[1].address.state != "IL":
-    must_live_in_illinois
   users[1].use_former_name
 
   nav.set_section('section_property')
@@ -224,6 +226,17 @@ question: |
 subquestion: |
   To qualify for **${ form_name }** both parties must meet the following:
   
+  ${ collapse_template(qualifications) }  
+
+  Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+template: qualifications
+subject: |
+  **Click here to see the full list of requirements for this program.**
+content: |  
   - The marriage or similar relationship lasted less than 8 years.
   - The relationship ended due to unresolved disagreements, and the parties are now separated.
   - No children were born or adopted during the relationship. Neither person is pregnant.
@@ -235,11 +248,6 @@ subquestion: |
   - Combined yearly income is less than $60,000, and neither earns more than $30,000 per year.
   - Both people have shared all their assets, debts, and tax records with each other.
   - Both people must have have an agreement on dividing assets over $100 and responsible debts.
-
-  Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
-buttons:
-  - Exit: exit
-  - Restart: restart
 ---
 id: income kickout
 event: income_kickout
@@ -451,6 +459,7 @@ fields:
   - no label: users[0].is_employed
     datatype: yesnoradio
   - What is your occupation?: users[0].occupation
+    maxlength: 40
     show if: users[0].is_employed
 ---
 id: income sources
@@ -606,6 +615,7 @@ fields:
   - no label: users[1].is_employed
     datatype: yesnoradio
   - What is their occupation?: users[1].occupation
+    maxlength: 40
     show if: users[1].is_employed
 ---
 id: spouses income sources
@@ -680,12 +690,15 @@ table: property_table
 rows: item
 columns:
   - Description: row_item.name.text
-  - Goes to: users[0].name_full() if row_item.who_gets else users[1].name_full()
+  - Goes to: |
+      "Me" if row_item.who_gets else "Spouse"
   - Edit property: |
       action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
 delete buttons: True
 confirm: True
 ---
+depends on: 
+- property_lists_created
 id: property details
 question: |
   Details for the ${ordinal(i)} item of property
@@ -695,7 +708,7 @@ fields:
   - Goes to: item[i].who_gets
     datatype: radio
     choices:
-      - ${ users[0].name_full() }: true
+      - Me: true
       - ${ users[1].name_full() }: false
 ---
 code: |
@@ -703,7 +716,8 @@ code: |
   item[i].complete = True
 ---
 depends on:
-- item
+  - item
+  - item.revisit
 code: |
   user0_property_list = []
   user1_property_list = []
@@ -715,10 +729,6 @@ code: |
         user1_property_list.append(item[j].name.text)
 
   property_lists_created = True
----
-code: |
-  if item.number_gathered() == 18:
-    item.there_is_another = False
 ---
 id: debt intro 
 question: |
@@ -742,8 +752,9 @@ fields:
 table: debts_table
 rows: debt
 columns:
-  - Name: row_item.name.text
-  - Goes to: users[0].name_full() if row_item.who_gets else users[1].name_full()
+  - Debt/liability: row_item.name.text
+  - Goes to: |
+      "Me" if row_item.who_gets else "Spouse"
   - Edit debt: |
       action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
 delete buttons: True
@@ -758,7 +769,7 @@ fields:
   - Who will be respondible for paying this debt?: debt[i].who_gets
     datatype: radio
     choices:
-      - ${ users[0].name_full() }: true
+      - Me: true
       - ${ users[1].name_full() }: false
 ---
 code: |
@@ -767,6 +778,7 @@ code: |
 ---
 depends on:
 - debt
+- debt.revisit
 code: |
   user0_debt_list = []
   user1_debt_list = []
@@ -778,10 +790,6 @@ code: |
         user1_debt_list.append(debt[j].name.text)
         
   debt_lists_created = True
----
-code: |
-  if debt.number_gathered() == 18:
-    debt.there_is_another = False
 ---
 ######################## Filing information ################################
 id: marriage date
@@ -896,7 +904,7 @@ subquestion: |
 
   <div class="alert alert-info ilao-info" role="alert">
     <h6 class="alert-heading">What it means to sign forms</h6>
-    <p>By signing this **${ form_name }** and certifying that:</p>
+    <p>By signing this <i>Joint Petition for Simplified Dissolution</i> and certifying that:</p>
     <p><ul>
       <li>Everything on the forms is true and correct, or have been informed or believe it is true and correct, and</li>
       <li>Understand that making a false statement on the forms is perjury and has penalties provided by law.</li>
@@ -920,7 +928,7 @@ subquestion: |
 
   <div class="alert alert-info ilao-info" role="alert">
     <h6 class="alert-heading">What it means to sign forms</h6>
-    <p>By signing this **${ form_name }** and certifying that:</p>
+    <p>By signing this <i>Joint Petition for Simplified Dissolution</i> and certifying that:</p>
     <p><ul>
       <li>Everything on the forms is true and correct, or have been informed or believe it is true and correct, and</li>
       <li>Understand that making a false statement on the forms is perjury and has penalties provided by law.</li>
@@ -995,7 +1003,7 @@ objects:
 objects:
   - cook_cover_sheet: ALDocument.using(title="Domestic Relations Cover Sheet", filename="cook_cover_sheet.pdf", has_addendum=False, enabled=True)
   - instructions: ALDocument.using(title="Instructions", filename="instructions.docx", enabled=True, has_addendum=False)
-  - joint_simplified_divorce_petition: ALDocument.using(title="Joint Simplified Petition for Dissolution forms", filename="joint_simplified_divorce_petition.pdf", enabled=True, has_addendum=False)
+  - joint_simplified_divorce_petition: ALDocument.using(title="Joint Petition for Simplified Dissolution forms", filename="joint_simplified_divorce_petition.pdf", enabled=True, has_addendum=False)
 ---
 attachment:
   variable name: cook_cover_sheet[i]
@@ -1061,9 +1069,9 @@ attachment:
     - "user0_email": ${ users[0].email if users[0].has_email_address else '' }
     - "user0_job": ${ users[0].occupation if users[0].is_employed else '' }
     - "user0_income": ${ thousands(users[0].income, show_decimals=True) }
-    - "ILResidence1": ${ word(yesno(users[0].address.state == "IL")) }
+    - "user0_lives_IL": ${ word(yesno(users[0].address.state == "IL")) }
     - "user0_IL_years": ${ int(users[0].resident_date) if users[0].address.state == "IL" else 'N/A' }
-    - "user0_former_name": ${ users[0].aliases[0].full(middle="full") if users[0].use_former_name else '' }
+    - "user0_former_name": ${ users[0].aliases[0] if users[0].use_former_name else '' }
 
     - "user1_address": ${ users[1].address.line_one(bare=True) }
     - "user1_city": ${ users[1].address.city }
@@ -1075,9 +1083,9 @@ attachment:
     - "user1_email": ${ users[1].email if users[1].has_email_address else '' }
     - "user1_job": ${ users[1].occupation if users[1].is_employed else '' }
     - "user1_income": ${ thousands(users[1].income, show_decimals=True) }
-    - "ILResidence2": ${ word(yesno(users[1].address.state == "IL")) }
+    - "user1_lives_IL": ${ word(yesno(users[1].address.state == "IL")) }
     - "user1_IL_years": ${ int(users[1].resident_date) if users[1].address.state == "IL" else 'N/A' }
-    - "user1_former_name": ${ users[1].aliases[0].full(middle="full") if users[1].use_former_name else '' }
+    - "user1_former_name": ${ users[1].aliases[0] if users[1].use_former_name else '' }
 
     # Property lists
     - "user0_property": ${ comma_and_list(user0_property_list) if len(user0_property_list) > 0 else '' }
