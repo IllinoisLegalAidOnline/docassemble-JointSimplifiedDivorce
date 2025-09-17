@@ -99,7 +99,7 @@ code: |
   set_progress(50)
   users[1].name.first
   users[1].address.address
-  if (users[0].address.state != "IL" and users[1].address.state != "IL") and (users[0].address.county != "Cook" and users[1].address.county != "Cook"):
+  if check_cook_county:
     must_live_in_illinois
   users[1].phone_number
   users[1].birthdate
@@ -391,14 +391,7 @@ fields:
       states_list()
   - ZIP code: users[0].address.zip
   - County: users[0].address.county
-    code: |
-      court_list._load_courts()["address_county"].unique()      
-    js show if: |
-      val('users[0].address.state') === "IL"
-  - County: users[0].address.county
     maxlength: 25
-    js show if: |
-      val('users[0].address.state') != "IL"
 ---
 id: your contact information
 question: |
@@ -476,6 +469,18 @@ fields:
   - Years of residence in Illinois: users[0].resident_date
     datatype: number
     min: 0
+---
+reconsider: True
+depends on:
+  - users[0].address.county
+  - users[1].address.county
+code: |
+  if (users[0].address.state != "IL" and users[1].address.state != "IL"):
+    check_cook_county = True
+  elif (users[0].address.county.split()[0].lower() != "cook" and users[1].address.county.split()[0].lower() != "cook"):
+    check_cook_county = True
+  else:
+    check_cook_county = False
 ---
 id: must live in IL
 event: must_live_in_illinois
@@ -559,14 +564,7 @@ fields:
     default: IL      
   - ZIP code: users[1].address.zip
   - County: users[1].address.county
-    code: |
-      court_list._load_courts()["address_county"].unique()      
-    js show if: |
-      val('users[1].address.state') === "IL"
-  - County: users[1].address.county
     maxlength: 25
-    js show if: |
-      val('users[1].address.state') != "IL"
 ---
 id: spouses contact information
 question: |
@@ -691,7 +689,7 @@ rows: item
 columns:
   - Description: row_item.name.text
   - Goes to: |
-      "Me" if row_item.who_gets else "Spouse"
+      "Me" if row_item.who_gets else users[1].name_full()
   - Edit property: |
       action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
 delete buttons: True
@@ -754,7 +752,7 @@ rows: debt
 columns:
   - Debt/liability: row_item.name.text
   - Goes to: |
-      "Me" if row_item.who_gets else "Spouse"
+      "Me" if row_item.who_gets else users[1].name_full()
   - Edit debt: |
       action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
 delete buttons: True
@@ -1055,7 +1053,7 @@ attachment:
 
     - "marriage_date": ${ marriage_date.format("MM/dd/yyyy") }
     - "marriage_city": ${ marriage_city }
-    - "marriage_county": ${ marriage_county }
+    - "marriage_county": ${ marriage_county if "county" in marriage_county.lower() else marriage_county + " County" }
     - "marriage_state": ${ marriage_state }
     - "separation_date": ${ separation_date.format("MM/dd/yyyy") }
 
@@ -1063,7 +1061,7 @@ attachment:
     - "user0_city": ${ users[0].address.city }
     - "user0_state": ${ users[0].address.state }
     - "user0_zip": ${ users[0].address.zip }
-    - "user0_county": ${ users[0].address.county }
+    - "user0_county": ${ users[0].address.county if "county" in users[0].address.county.lower() else users[0].address.county + " County" }
     - "user0_birthyear": ${ users[0].birthdate.year }
     - "user0_age": ${ users[0].age_in_years() }
     - "user0_email": ${ users[0].email if users[0].has_email_address else '' }
@@ -1071,13 +1069,20 @@ attachment:
     - "user0_income": ${ thousands(users[0].income, show_decimals=True) }
     - "user0_lives_IL": ${ word(yesno(users[0].address.state == "IL")) }
     - "user0_IL_years": ${ int(users[0].resident_date) if users[0].address.state == "IL" else 'N/A' }
-    - "user0_former_name": ${ users[0].aliases[0] if users[0].use_former_name else '' }
+    - "user0_former_name":  |
+        % if users[0].use_former_name and users[1].use_former_name:
+        ${ users[0].aliases[0].full(middle="full") + ' and ' + users[1].aliases[0].full(middle="full") }
+        % elif users[0].use_former_name:
+        ${ users[0].aliases[0].full(middle="full") }
+        % elif users[1].use_former_name:
+        ${ users[1].aliases[0].full(middle="full") }
+        % endif
 
     - "user1_address": ${ users[1].address.line_one(bare=True) }
     - "user1_city": ${ users[1].address.city }
     - "user1_state": ${ users[1].address.state }   
     - "user1_zip": ${ users[1].address.zip }
-    - "user1_county": ${ users[1].address.county }   
+    - "user1_county": ${ users[1].address.county if "county" in users[1].address.county.lower() else users[1].address.county + " County" }
     - "user1_birthyear": ${ users[1].birthdate.year }
     - "user1_age": ${ users[1].age_in_years() }
     - "user1_email": ${ users[1].email if users[1].has_email_address else '' }
@@ -1085,8 +1090,15 @@ attachment:
     - "user1_income": ${ thousands(users[1].income, show_decimals=True) }
     - "user1_lives_IL": ${ word(yesno(users[1].address.state == "IL")) }
     - "user1_IL_years": ${ int(users[1].resident_date) if users[1].address.state == "IL" else 'N/A' }
-    - "user1_former_name": ${ users[1].aliases[0] if users[1].use_former_name else '' }
-
+    - "user1_former_name":  |
+        % if users[0].use_former_name and users[1].use_former_name:
+        ${ users[0].aliases[0].full(middle="full") + ' and ' + users[1].aliases[0].full(middle="full") }
+        % elif users[0].use_former_name:
+        ${ users[0].aliases[0].full(middle="full") }
+        % elif users[1].use_former_name:
+        ${ users[1].aliases[0].full(middle="full") }
+        % endif
+    
     # Property lists
     - "user0_property": ${ comma_and_list(user0_property_list) if len(user0_property_list) > 0 else '' }
     - "user1_property": ${ comma_and_list(user1_property_list) if len(user1_property_list) > 0 else '' }

@@ -56,7 +56,7 @@ review:
       % if users[0].use_former_name:
       **Former name:**
 
-      ${ users[0].aliases[0] }
+      ${ users[0].aliases[0].full(middle="full") }
       % endif
   - Edit: users[0].e_signature
     button: |
@@ -113,7 +113,7 @@ review:
       % if users[1].use_former_name:
       **Spouse former name:**
 
-      ${ users[1].aliases[0] }
+      ${ users[1].aliases[0].full(middle="full") }
       % endif
   - Edit: users[1].e_signature
     button: |
@@ -131,7 +131,7 @@ review:
 
       **Me:** ${ comma_and_list(user0_property_list) if len(user0_property_list) > 0 else '' }
 
-      **Spouse:** ${ comma_and_list(user1_property_list) if len(user1_property_list) > 0 else '' }
+      **${ users[1].name_full() }:** ${ comma_and_list(user1_property_list) if len(user1_property_list) > 0 else '' }
     show if: has_property
   - Edit: has_debts
     button: |
@@ -143,7 +143,7 @@ review:
 
       **Me:** ${ comma_and_list(user0_debt_list) if len(user0_debt_list) > 0 else '' }
 
-      **Spouse:** ${ comma_and_list(user1_debt_list) if len(user1_debt_list) > 0 else '' }
+      **${ users[1].name_full() }:** ${ comma_and_list(user1_debt_list) if len(user1_debt_list) > 0 else '' }
     show if: has_debts
   - note: |
       <h4>Filing Information</h4>
@@ -166,7 +166,14 @@ review:
   - Edit: previous_cook_case_type
     button: |
       **Previous Cook County case:**
-      ${ previous_cook_case_type }
+
+      % if previous_cook_case_type == "divorce":
+      - I was in an earlier **divorce** case with ${ users[1].name_full() }.
+      % elif previous_cook_case_type == "parentage":
+      - I was in an earlier **parentage** case with ${ users[1].name_full() } involving children we had together.
+      % else:
+      - No earlier divorce or parentage cases were filed in Cook County.
+      % endif
 ---
 #################### REVISIT #########################
 id: property review screen
@@ -178,7 +185,7 @@ subquestion: |
 
   ${ item.add_action() }
 
-  ${ reconsider('property_lists_created') }
+  <span hidden>${ reconsider('property_lists_created') }</span>
 ---
 id: debt review screen
 continue button field: debt.revisit
@@ -189,7 +196,7 @@ subquestion: |
 
   ${ debt.add_action() }
 
-  ${ reconsider('debt_lists_created') }
+  <span hidden>${ reconsider('debt_lists_created') }</span>
 ---
 #################### SECTION REVIEW - ABOUT YOU #########################
 id: about you review screen
@@ -210,6 +217,7 @@ review:
       ${ users[0].address.block() }
 
       **County:** ${ users[0].address.county }
+
   - Edit: users[0].phone_number
     button: |
       **Your phone number:**
@@ -247,7 +255,7 @@ review:
       % if users[0].use_former_name:
       **Former name:**
 
-      ${ users[0].aliases[0] }
+      ${ users[0].aliases[0].full(middle="full") }
       % endif
   - Edit: users[0].e_signature
     button: |
@@ -310,7 +318,7 @@ review:
       % if users[1].use_former_name:
       **Spouse former name:**
 
-      ${ users[1].aliases[0] }
+      ${ users[1].aliases[0].full(middle="full") }
       % endif
   - Edit: users[1].e_signature
     button: |
@@ -335,7 +343,7 @@ review:
 
       **Me:** ${ comma_and_list(user0_property_list) if len(user0_property_list) > 0 else '' }
 
-      **Spouse:** ${ comma_and_list(user1_property_list) if len(user1_property_list) > 0 else '' }
+      **${ users[1].name_full() }:** ${ comma_and_list(user1_property_list) if len(user1_property_list) > 0 else '' }
     show if: has_property
   - Edit: has_debts
     button: |
@@ -347,7 +355,7 @@ review:
 
       **Me:** ${ comma_and_list(user0_debt_list) if len(user0_debt_list) > 0 else '' }
 
-      **Spouse:** ${ comma_and_list(user1_debt_list) if len(user1_debt_list) > 0 else '' }
+      **${ users[1].name_full() }:** ${ comma_and_list(user1_debt_list) if len(user1_debt_list) > 0 else '' }
     show if: has_debts
 ---
 #################### SECTION REVIEW - PROPERTY/DEBT #########################
@@ -365,6 +373,7 @@ review:
   - Edit: marriage_state
     button: |
       **Marriage location:** ${ marriage_city }, ${ marriage_state } 
+      
       **County:** ${ marriage_county }
   - Edit: separation_date
     button: |
@@ -377,5 +386,12 @@ review:
   - Edit: previous_cook_case_type
     button: |
       **Previous Cook County case:**
-      ${ previous_cook_case_type }
+
+      % if previous_cook_case_type == "divorce":
+      - I was in an earlier **divorce** case with ${ users[1].name_full() }.
+      % elif previous_cook_case_type == "parentage":
+      - I was in an earlier **parentage** case with ${ users[1].name_full() } involving children we had together.
+      % else:
+      - No earlier divorce or parentage cases were filed in Cook County.
+      % endif
 ---
