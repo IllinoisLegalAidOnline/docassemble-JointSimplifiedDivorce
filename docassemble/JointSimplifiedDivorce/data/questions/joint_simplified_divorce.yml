@@ -85,20 +85,22 @@ code: |
   set_progress(30)
   users[0].name.first
   users[0].address.address
+  if users[0].address.state == "IL":
+    users[0].resident_date
   users[0].phone_number
   users[0].birthdate
   users[0].is_employed
   if users[0].income > 30000:
     income_kickout_user = 0
     income_kickout
-  if users[0].address.state == "IL":
-    users[0].resident_date
   users[0].use_former_name
 
   nav.set_section('section_spouse')
   set_progress(50)
   users[1].name.first
   users[1].address.address
+  if users[1].address.state == "IL":
+    users[1].resident_date
   if check_cook_county:
     must_live_in_illinois
   users[1].phone_number
@@ -107,8 +109,6 @@ code: |
   if users[1].income > 30000:
     income_kickout_user = 1
     income_kickout
-  if users[1].address.state == "IL":
-    users[1].resident_date
   users[1].use_former_name
 
   nav.set_section('section_property')
@@ -197,7 +197,7 @@ subquestion: |
   * Gather necessary documents, such as tax returns and proof of income, to complete the forms accurately.
   * This program is limited to Cook county residents only.
 
-  It could take 20 minutes to 40 minutes to finish this program. You can log in and save your work to return to later. 
+  It could take 15 minutes to 30 minutes to finish this program. You can log in and save your work to return to later. 
  
   ${ collapse_template(help_example) }  
 
@@ -475,9 +475,7 @@ depends on:
   - users[0].address.county
   - users[1].address.county
 code: |
-  if (users[0].address.state != "IL" and users[1].address.state != "IL"):
-    check_cook_county = True
-  elif (users[0].address.county.split()[0].lower() != "cook" and users[1].address.county.split()[0].lower() != "cook"):
+  if (users[0].address.county.split()[0].lower() != "cook" and users[1].address.county.split()[0].lower() != "cook"):
     check_cook_county = True
   else:
     check_cook_county = False
@@ -487,7 +485,7 @@ event: must_live_in_illinois
 question: |
   Sorry
 subquestion: |
-  You must live in Illinois if you want to file for divorce in Illinois.
+  You or your spouse must live in **Cook County** if you want to file for a joint simplified divorce in Illinois.
   
   If you want to file for divorce outside Illinois, you can use the [**Legal Services Corporation website**](https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help) to find a legal aid organization in another state.
 buttons:

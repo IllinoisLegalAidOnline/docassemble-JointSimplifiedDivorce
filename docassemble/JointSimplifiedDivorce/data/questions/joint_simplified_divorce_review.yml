@@ -18,7 +18,7 @@ review:
       
       ${ users[0].address.block() }
 
-      **County:** ${ users[0].address.county }
+      **County:** ${ users[0].address.county if "county" in users[0].address.county.lower() else users[0].address.county + " County" }
   - Edit: users[0].phone_number
     button: |
       **Your phone number:**
@@ -75,7 +75,7 @@ review:
 
       ${ users[1].address.block() }
 
-      **County:** ${ users[1].address.county }
+      **County:** ${ users[1].address.county if "county" in users[1].address.county.lower() else users[1].address.county + " County" }
   - Edit: users[1].phone_number
     button: |
       **Spouse's phone number:**
@@ -154,7 +154,8 @@ review:
   - Edit: marriage_state
     button: |
       **Marriage location:** ${ marriage_city }, ${ marriage_state } 
-      **County:** ${ marriage_county }
+
+      **County:** ${ marriage_county if "county" in marriage_county.lower() else marriage_county + " County" }
   - Edit: separation_date
     button: |
       **Separation date:**
@@ -216,7 +217,7 @@ review:
       
       ${ users[0].address.block() }
 
-      **County:** ${ users[0].address.county }
+      **County:** ${ users[0].address.county if "county" in users[0].address.county.lower() else users[0].address.county + " County" }
 
   - Edit: users[0].phone_number
     button: |
@@ -280,7 +281,7 @@ review:
 
       ${ users[1].address.block() }
 
-      **County:** ${ users[1].address.county }
+      **County:** ${ users[1].address.county if "county" in users[1].address.county.lower() else users[1].address.county + " County" }
   - Edit: users[1].phone_number
     button: |
       **Spouse's phone number:**
@@ -373,8 +374,8 @@ review:
   - Edit: marriage_state
     button: |
       **Marriage location:** ${ marriage_city }, ${ marriage_state } 
-      
-      **County:** ${ marriage_county }
+
+      **County:** ${ marriage_county if "county" in marriage_county.lower() else marriage_county + " County" }
   - Edit: separation_date
     button: |
       **Separation date:**
