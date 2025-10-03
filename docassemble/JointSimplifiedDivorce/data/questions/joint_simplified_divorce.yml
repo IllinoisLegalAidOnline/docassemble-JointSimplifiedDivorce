@@ -1004,7 +1004,7 @@ content: |
 generic object: ALDocumentBundle
 template: x.send_email_template
 subject: |
-  Divorce forms
+  Joint simplified divorce forms
 content: |
   Your forms are attached.
   
