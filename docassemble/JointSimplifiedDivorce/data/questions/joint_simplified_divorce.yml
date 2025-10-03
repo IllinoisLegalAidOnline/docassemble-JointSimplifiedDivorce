@@ -16,14 +16,11 @@ objects:
   - users: ALPeopleList.using(there_are_any=True)
   - item: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)
   - debt: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)
-
-
-  
   - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
 code: |
   al_form_type = 'starts_case'
-  ilao_easy_form_title = "Joint Simplified Divorce"
+  ilao_easy_form_title = "Joint simplified divorce - Cook County"
   ilao_easy_form_url = "https://www.illinoislegalaid.org/legal-information/joint-simplified-divorce-cook-county"
   form_name = "Joint Simplified Divorce"
   github_user = 'IllinoisLegalAidOnline'
@@ -179,23 +176,22 @@ question: |
 subquestion: |
   Welcome to Illinois Legal Aid Online's **Joint simplified divorce - Cook County** Easy Form.
 
-  This program helps you make divorce forms to ask the court to end a marriage or civil union in Cook County, Illinois.
+  This program helps you make divorce forms to ask the court to end a marriage or civil union in Cook County, Illinois. Not everyone meets the requirements for the simplified process. The next screens will help you determine if you qualify.
 
-  To learn more, read ILAO's guide to [**getting a divorce**](https://www.illinoislegalaid.org/node/30446).
+  To learn more, read ILAO's article about [**getting a joint simplified divorce with no children**](https://www.illinoislegalaid.org/legal-information/joint-simplified-divorce-no-children).
 ---
 id: how to use
 continue button field: how_to_use
 question: |
   Instructions
 subquestion: |
-  To complete this program, you will need to consider the following:
+  To use this program you will need to know:
 
-  * You or your spouse must be a resident of Illinois for the past 90 days. 
-  * Your marriage or civil union cannot be longer than 8 years.
-  * Both parties **must agree on all of the terms** of the divorce, including property division and support waivers.
-  * Both parties must earn no more than $30,000 per year before taxes and combined income must be under $60,000.
-  * Gather necessary documents, such as tax returns and proof of income, to complete the forms accurately.
-  * This program is limited to Cook county residents only.
+  * Date and place of your marriage or civil union, 
+  * Date you and your spouse separated,
+  * Addresses for you and your spouse,
+  * The yearly income of you and your spouse, and
+  * A list of property and debts from the marriage or civil union.
 
   It could take 15 minutes to 30 minutes to finish this program. You can log in and save your work to return to later. 
  
@@ -214,31 +210,35 @@ continue button field: about_divorce
 question: |
   About joint simplified divorce
 subquestion: |
-  A **joint simplified divorce** is a court process that makes it easier to get a divorce. It can be used to end a marriage or civil union.
+  A **joint simplified divorce** is a court process that makes it easier to get a divorce. It can be used to end a marriage or civil union. To get a joint simplified divorce, you and your spouse must meet the following requirements:
 
-  To learn more, read ILAO's guide about [**getting joint simplified divorce with no children**](https://www.illinoislegalaid.org/legal-information/joint-simplified-divorce-no-children).
+  ${ qualifications }  
+  
+  To learn more, read ILAO's article about [**getting joint simplified divorce with no children**](https://www.illinoislegalaid.org/legal-information/joint-simplified-divorce-no-children).
 ---
 ########################## Requirements ######################
 id:  kickout
 event: kickout
 question: |
-  Sorry you do not qualify
+  Sorry
 subquestion: |
-  To qualify for **${ form_name }** both parties must meet the following:
+  To qualify for a joint simplified divorce both people must meet **all** the following requirements:
   
-  ${ collapse_template(qualifications) }  
+  ${ qualifications }
 
-  Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
+  You can still file for a divorce. Make the forms you need with ILAO's [Divorce Easy Form](https://www.illinoislegalaid.org/node/30691).
+
+  If you have questions, you can use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
 buttons:
   - Exit: exit
   - Restart: restart
 ---
 template: qualifications
 subject: |
-  **Click here to see the full list of requirements for this program.**
+  **Joint Simplified Divorce requirements**
 content: |  
-  - The marriage or similar relationship lasted less than 8 years.
-  - The relationship ended due to unresolved disagreements, and the parties are now separated.
+  - The marriage or civil union lasted less than 8 years.
+  - The relationship ended due to unresolved disagreements, and the people are now separated.
   - No children were born or adopted during the relationship. Neither person is pregnant.
   - Neither person depends on the other for support, or both agree to waive support rights.
   - Both people agree they do not want support payments from each other.
@@ -310,34 +310,42 @@ content: |
 ---
 id: children
 question: |
-  Questions about children
+  Children
 fields:
   - Were any children born of the relationship?: no_kids
     datatype: yesnoradio
+    label above field: true
   - Are either you or your spouse pregnant?: not_pregnant
     datatype: yesnoradio
+    label above field: true
   - Were any children adopted during the relationship?: no_adoption
     datatype: yesnoradio
+    label above field: true
 ---
 id: residency
 question: |
   Residency
 fields:
-  - Has either you or your spouse lived in Illinois for the last 90 days?: live_in_illinois
+  - Have you or your spouse lived in Illinois for the last 90 days?: live_in_illinois
     datatype: yesnoradio
+    label above field: true
   - Do you or your spouse currently live in Cook County?: live_in_cook
     datatype: yesnoradio
+    label above field: true
 ---
 id: income and retirement
 question: |
-  Income & retirement
+  Income and retirement
 fields:
   - Do both you and your spouse make under $30,000 per year?: income_req
     datatype: yesnoradio
+    label above field: true
   - If either of you have retirement benefits, are they each in your own name and worth $10,000 or less?: retirement_req
     datatype: yesnoradio
+    label above field: true
   - Are both you and your spouse able to support yourselves?: support_req
     datatype: yesnoradio
+    label above field: true
 ---
 id: property and debts
 Question: |
@@ -345,18 +353,21 @@ Question: |
 fields:
   - Do either of you own any real estate?: no_real_estate
     datatype: yesnoradio
-  - Have you agreed how you will split up any property over $100?: property_divided
+    label above field: true
+  - Have you agreed how you will divide any property worth over $100?: property_divided
     datatype: yesnoradio
-  - Have you agreed how you will split up any debts?: debts_divided
+    label above field: true
+  - Have you agreed how you will divide any debts?: debts_divided
     datatype: yesnoradio
+    label above field: true
 ---
 id: qualified
 question: |
   Qualified to file for a joint simplified divorce in Cook County
 subquestion: |
-  Based on your answers, you qualify for a joint simplified divorce in Cook County.
+  Based on your answers, you meet the requirements to file for a joint simplified divorce in Cook County.
 
-  The next screens will ask questions to fill out your forms.
+  You will be asked questions on the next screens. Your answers will be used to fill out your forms.
 continue button field: can_continue  
 ---
 ######################## ABOUT YOU ################################
@@ -397,8 +408,10 @@ id: your contact information
 question: |
   What is your contact information?
 subquestion: |
-  The court or other parties might need to contact you about this case.
-
+  The court or the clerk might need to contact you about this case.
+  
+  If you do not want to list a phone number on your forms, leave it blank.
+  
   If you have an email address, you must list it. Be sure to check your email daily, otherwise you may miss important court documents or information about your case.
 
   ${ collapse_template(contact_info_help) }  
@@ -428,8 +441,6 @@ subject: |
   **What if I don't want to list my email address?**
 content: |  
   If you do not want to enter your personal email address, you can create a new email account to get email about your case.
-  
-  If you do not want to list a phone number on your forms, leave it blank.
   
   To make a new email account try one of these email services:
   
@@ -568,7 +579,7 @@ id: spouses contact information
 question: |
   What is ${ users[1].name_full() } contact information?
 subquestion: |
-  The court or other parties might need to contact them about this case.
+  The court or the clerk might need to contact them about this case.
 
   If they do not want to list a phone number on the forms, leave it blank.
 
@@ -659,9 +670,12 @@ fields:
 ######################## Property and debt ################################
 id: property and debts
 question: |
-  Separation of property and liabilities
+  Division of property and debts
 subquestion: |
-  ** placeholder for section intro**
+  To get a joint simplified divorce, you and your spouse must agree on how you want to divide:
+
+  * Any property worth over $100 that either or both of you got during the marriage, and
+  * Any debts that either or both of you acquired during the marriage.
 continue button field: property_intro
 ---
 id: property division 
@@ -679,7 +693,7 @@ subquestion: |
 
   ${ property_table }
 fields:
-  - Add another?: item.there_is_another
+  - Add more property?: item.there_is_another
     datatype: yesnoradio
 ---
 table: property_table
@@ -729,6 +743,8 @@ code: |
 id: debt intro 
 question: |
   Are there any debts or liabilities to be divided?
+subquestion: |
+  This includes any debts that you or your spouse took on during the marriage.
 fields:
   - no label: has_debts
     datatype: yesnoradio
@@ -742,7 +758,7 @@ subquestion: |
   ${ debts_table }
 
 fields:
-  - Add another?: debt.there_is_another
+  - Add another debt?: debt.there_is_another
     datatype: yesnoradio
 ---
 table: debts_table
@@ -758,9 +774,11 @@ confirm: True
 ---
 id: debt information
 question: |
-  Details for the ${ordinal(i)} debt 
+  Details for the ${ordinal(i)} debt
+subquestion: |
+  **Note:** Do not list any account numbers.
 fields:
-  - Name of debt/liability: debt[i].name.text
+  - Name of debt or liability: debt[i].name.text
     maxlength: 25
   - Who will be respondible for paying this debt?: debt[i].who_gets
     datatype: radio
@@ -840,7 +858,9 @@ fields:
 ---
 id: separation date
 question: |
-  When was the separation?
+  When did you separate or start living apart?
+subquestion: |
+  You do not need to live at separate addresses to be "separated."
 fields:
   - Date of separation: separation_date
     datatype: ThreePartsDate
@@ -955,7 +975,7 @@ event: get_docs_screen
 question: |
   Download
 subquestion: |
-  Your form is ready. View and download your form below. Click **Make changes** to fix any mistakes.
+  Your form is ready. View and download your form below. Click **:edit: Make changes** to fix any mistakes.
 
   This program **does not file** your forms. You will need to do this yourself. Learn about [**e-filing in Illinois**](https://www.illinoiscourts.gov/eservices/information-for-filers-without-lawyers).
  

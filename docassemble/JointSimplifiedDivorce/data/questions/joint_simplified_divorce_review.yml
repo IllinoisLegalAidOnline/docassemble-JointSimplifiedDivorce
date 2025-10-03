@@ -7,7 +7,7 @@ subquestion: |
   Edit your answers below.
 review:
   - note: |
-      <h4>About You</h4>
+      <h4>About you</h4>
   - Edit: users[0].name.first
     button: |
       **Your name:**
@@ -64,7 +64,7 @@ review:
       ${ 'Yes' if users[0].e_signature else 'No' }
 
   - note: |
-      <h4>About Your Spouse</h4>
+      <h4>About your spouse</h4>
   - Edit: users[1].name.first
     button: |
       **Spouse's name:**
@@ -120,7 +120,7 @@ review:
       **Spouse E-signature:**
       ${ 'Yes' if users[1].e_signature else 'No' }
   - note: |
-      <h4>Property and Debt</h4>
+      <h4>Property and debt</h4>
   - Edit: has_property
     button: |
       **Have property over $100?**
@@ -146,7 +146,7 @@ review:
       **${ users[1].name_full() }:** ${ comma_and_list(user1_debt_list) if len(user1_debt_list) > 0 else '' }
     show if: has_debts
   - note: |
-      <h4>Filing Information</h4>
+      <h4>Filing information</h4>
   - Edit: marriage_date
     button: |
       **Marriage date:**
@@ -162,7 +162,7 @@ review:
       ${ separation_date.format("MM/dd/yyyy") }
   - Edit: case_type_marriage
     button: |
-      **Case type:**
+      **Union type:**
       ${ 'Marriage' if case_type_marriage else 'Civil Union' }
   - Edit: previous_cook_case_type
     button: |
@@ -180,7 +180,7 @@ review:
 id: property review screen
 continue button field: item.revisit
 question: |
-  Make changes to the division of property:
+  Edit property to be divided
 subquestion: |
   ${ property_table }
 
@@ -191,7 +191,7 @@ subquestion: |
 id: debt review screen
 continue button field: debt.revisit
 question: |
-  Make changes to the division of debt:
+  Edit debts to be divided
 subquestion: |
   ${ debts_table }
 
@@ -203,7 +203,7 @@ subquestion: |
 id: about you review screen
 event: section_about
 question: |
-  About You
+  About you
 subquestion: |
   Edit your answers below.
 review: 
@@ -267,7 +267,7 @@ review:
 id: about spouse review screen
 event: section_spouse
 question: |
-  About Your Spouse
+  About your spouse
 subquestion: |
   Edit your answers below.
 review: 
@@ -330,7 +330,7 @@ review:
 id: property debt review screen
 event: section_property
 question: |
-  Property and Debt
+  Property and debt
 subquestion: |
   Edit your answers below.
 review: 
@@ -363,7 +363,7 @@ review:
 id: filing information review screen
 event: section_filing
 question: |
-  Filing Information
+  Filing information
 subquestion: |
   Edit your answers below.
 review: 
@@ -382,7 +382,7 @@ review:
       ${ separation_date.format("MM/dd/yyyy") }
   - Edit: case_type_marriage
     button: |
-      **Case type:**
+      **Union type:**
       ${ 'Marriage' if case_type_marriage else 'Civil Union' }
   - Edit: previous_cook_case_type
     button: |
