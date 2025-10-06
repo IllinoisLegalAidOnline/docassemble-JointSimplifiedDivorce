@@ -448,6 +448,18 @@ content: |
   * [**Outlook**](https://outlook.live.com/owa/?nlp=1&signup=1)
   * [**Yahoo**](https://login.yahoo.com/account/create?.lang=en-US&.intl=us)
 ---
+template: spouse_contact_info_help
+subject: |
+  **What if ${ users[1].name_full() } doesn't want to list their email address?**
+content: |  
+  If ${ users[1].name_full() } does not want to enter their personal email address, they can create a new email account to get email about the case.
+  
+  To make a new email account try one of these email services:
+  
+  * [**Gmail**](https://accounts.google.com/SignUp)
+  * [**Outlook**](https://outlook.live.com/owa/?nlp=1&signup=1)
+  * [**Yahoo**](https://login.yahoo.com/account/create?.lang=en-US&.intl=us)
+---
 id: birthdate
 question: |
   When were you born?
@@ -480,6 +492,7 @@ fields:
   - Years of residence in Illinois: users[0].resident_date
     datatype: number
     min: 0
+    max: 150
 ---
 reconsider: True
 depends on:
@@ -585,7 +598,7 @@ subquestion: |
 
   If they have an email address, they must list it. ${ users[1].name_full() } should check their email daily, otherwise they may miss important court documents or information about the case.
 
-  ${ collapse_template(contact_info_help) }  
+  ${ collapse_template(spouse_contact_info_help) }  
 fields:  
   - ${ users[1].name_full() }'s phone number: users[1].phone_number
     datatype: al_international_phone
@@ -639,6 +652,7 @@ fields:
   - Years of residence in Illinois: users[1].resident_date
     datatype: number
     min: 0
+    max: 150
 ---
 sets:
   - users[1].aliases[0].first
@@ -817,6 +831,7 @@ fields:
   - Date of marriage or civil union: marriage_date
     datatype: ThreePartsDate
     alMax: ${ today().format("yyyy-MM-dd") }
+    alMin: ${ users[0].birthdate }
 ---
 template: civil_unions_help
 subject: |
@@ -912,9 +927,9 @@ fields:
 ---
 id: e-signature
 question: |
-  Do you want to add your e-signature to your forms?
+  Do you want to add your e-signature to the forms?
 subquestion: |
-  This program can put “**/s/ ${ users[0].name_full() }**” where you would sign your name. The court will accept this as your signature.
+  This program can put "**/s/ ${ users[0].name_full() }**" where you would sign your name. The court will accept this as your signature.
 
   If you do not add your **{e-signature}** now, you must sign your paper forms before you file them.
 
@@ -936,9 +951,9 @@ terms:
 ---
 id: spouse e-signature
 question: |
-  Do they want to add an e-signature to their forms?
+  Does ${ users[1].name_full() } want to add their e-signature to the forms?
 subquestion: |
-  This program can put “**/s/ ${ users[1].name_full() }**” where for their name. The court will accept this as their signature.
+  This program can put "**/s/ ${ users[1].name_full() }**" where for their name. The court will accept this as their signature.
 
   If they do not add their **{e-signature}** now, they must sign their paper forms before filing.
 
@@ -1014,7 +1029,7 @@ content: |
 ---
 ###################### ATTACHMENTS ##########################
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, cook_cover_sheet, joint_simplified_divorce_petition], filename="completed_parenting_plan.pdf", title="All forms", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, cook_cover_sheet, joint_simplified_divorce_petition], filename="joint_simplified_divorce_forms.pdf", title="All forms", enabled=True)
 ---
 objects:
   - cook_cover_sheet: ALDocument.using(title="Domestic Relations Cover Sheet", filename="cook_cover_sheet.pdf", has_addendum=False, enabled=True)
