@@ -130,6 +130,7 @@ code: |
   previous_cook_case_type
   users[0].e_signature
   users[1].e_signature
+  next_steps
   set_progress(100)
   nav.set_section('section_download')
   forms_assembling
@@ -973,6 +974,19 @@ terms:
   - "e-signature": |
       An e-signature is an electronic signature. It is a digital version of a signature that has the same effect as a hand-written signature. 
 ---
+id: next steps
+continue button field: next_steps
+question: |
+  Next steps
+subquestion: |
+  After you download your forms, sign them if you and your spouse have not added your e-signature. You can then file or e-file the Joint simplified divorce petition forms with the circuit clerk.
+
+  To get a court date, you may need to file a motion. Check with the circuit clerk on the process. If you need to file a motion, you can use ILAO's [Motion Easy Form](https://www.illinoislegalaid.org/node/30971) to make the forms you need.
+
+  When you have your court date, bring copies of your all your forms to court. At that time you will need to complete llinois Department of Public Health (IDPH) **Certificate of Dissolution**. The circuit clerk will file-stamp it to finalize your divorce.
+
+  Read the instructions you download for more information. The circuit clerk can give you specifics on how it all works.
+---
 ###################### Assemble/Download #########################
 id: forms assembling
 continue button field: forms_assembling
@@ -997,6 +1011,8 @@ subquestion: |
   ${ action_button_html(url_action('review_answers'), label=':edit: Make changes', color='success', size="md") }
 
   ${ al_user_bundle.download_list_html() }
+
+  **Important:** Do not file the **IDPH Certificate of Dissolution** with your other forms. You will need to complete it later to finalize your divorce. Read the instructions for more information.
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
@@ -1029,12 +1045,14 @@ content: |
 ---
 ###################### ATTACHMENTS ##########################
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, cook_cover_sheet, joint_simplified_divorce_petition], filename="joint_simplified_divorce_forms.pdf", title="All forms", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, cook_cover_sheet, joint_simplified_divorce_petition, IDPH_certificate_instructions, IDPH_certificate_of_dissolution], filename="joint_simplified_divorce_forms.pdf", title="All forms", enabled=True)
 ---
 objects:
   - cook_cover_sheet: ALDocument.using(title="Domestic Relations Cover Sheet", filename="cook_cover_sheet.pdf", has_addendum=False, enabled=True)
-  - instructions: ALDocument.using(title="Instructions", filename="instructions.docx", enabled=True, has_addendum=False)
+  - instructions: ALDocument.using(title="Instructions", filename="instructions.pdf", enabled=True, has_addendum=False)
   - joint_simplified_divorce_petition: ALDocument.using(title="Joint Petition for Simplified Dissolution forms", filename="joint_simplified_divorce_petition.pdf", enabled=True, has_addendum=False)
+  - IDPH_certificate_instructions: ALDocument.using(title="IDPH Certificate instructions", filename="IDPH_certificate_instructions.pdf", has_addendum=False, enabled=True)
+  - IDPH_certificate_of_dissolution: ALDocument.using(title="IDPH Certificate of Dissolution", filename="IDPH_certificate_of_dissolution.pdf", has_addendum=False, enabled=True)
 ---
 attachment:
   variable name: cook_cover_sheet[i]
@@ -1068,8 +1086,11 @@ attachment:
   variable name: instructions[i]
   name: instructions
   filename: instructions
+  pdf template file: instructions.pdf
   skip undefined: True
-  docx template file: instructions.docx
+  editable: False
+  fields:
+    - "fake": ${ "" }
 ---
 attachment:
   variable name: joint_simplified_divorce_petition[i]
@@ -1143,3 +1164,19 @@ attachment:
     # Digital signatures
     - "user0_signature": ${ users[0].name_full() if users[0].e_signature else '' }
     - "user1_signature": ${ users[1].name_full() if users[1].e_signature else '' }
+---
+attachment:
+  variable name: IDPH_certificate_instructions[i]
+  name: IDPH_certificate_instructions
+  filename: IDPH_certificate_instructions
+  editable: False
+  skip undefined: True
+  pdf template file: IDPH_certificate_instructions.pdf  
+  fields:
+      - "fake": ${ "" }
+---
+attachment:
+  variable name: IDPH_certificate_of_dissolution[i]
+  name: IDPH_certificate_of_dissolution
+  filename: IDPH_certificate_of_dissolution
+  pdf template file: IDPH_certificate_of_dissolution.pdf
