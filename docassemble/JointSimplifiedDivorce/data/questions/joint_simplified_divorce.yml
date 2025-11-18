@@ -240,7 +240,7 @@ subject: |
 content: |  
   - The marriage or civil union lasted less than 8 years.
   - The relationship ended due to unresolved disagreements, and the people are now separated.
-  - No children were born or adopted during the relationship. Neither person is pregnant.
+  - No children were born or adopted during the relationship. Neither person is pregnant by the other person.
   - Neither person depends on the other for support, or both agree to waive support rights.
   - Both people agree they do not want support payments from each other.
   - Neither person has any ownership in real estate property.
@@ -302,12 +302,14 @@ subject: |
 content: |  
   **Irreconcilable differences** is the only reason required in Illinois for getting a divorce.
 
-  If you have been separated for 6 months or more, no other proof is needed to qualify for a divorce.
+  If you have been living at separate addresses for 6 months or more, no other proof is needed to qualify for a divorce.
 
   If you have been separated less than 6 months at the time of your divorce hearing you will have to show the judge that you and your spouse:
 
   * Separated because you cannot get along anymore, and
   * Tried to fix the problems in your marriage, but could not, or the problems are so bad that trying to fix them is not best for your family.
+
+  **Note:** You do not need to live at separate addresses to be "separated."
 ---
 id: children
 question: |
@@ -316,7 +318,7 @@ fields:
   - Were any children born of the relationship?: no_kids
     datatype: yesnoradio
     label above field: true
-  - Are either you or your spouse pregnant?: not_pregnant
+  - Are either you or your spouse pregnant by the other person?: not_pregnant
     datatype: yesnoradio
     label above field: true
   - Were any children adopted during the relationship?: no_adoption
