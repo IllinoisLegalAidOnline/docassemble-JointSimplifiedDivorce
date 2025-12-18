@@ -340,13 +340,13 @@ id: income and retirement
 question: |
   Income and retirement
 fields:
-  - Do both you and your spouse make under $30,000 per year?: income_req
+  - Do both you and your spouse each make under $30,000 per year?: income_req
     datatype: yesnoradio
     label above field: true
   - If either of you have retirement benefits, are they each in your own name and worth $10,000 or less?: retirement_req
     datatype: yesnoradio
     label above field: true
-  - Are both you and your spouse able to support yourselves?: support_req
+  - Are both you and your spouse able to support yourselves without help from the other person?: support_req
     datatype: yesnoradio
     label above field: true
 ---
