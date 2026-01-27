@@ -27,17 +27,22 @@ review:
       % else:
       ${ phone_number_formatted(users[0].phone_number) }
       % endif
-
+      
+      **Do you have an email address?**
+      ${ word(yesno(users[0].has_email_address))}
+      % if users[0].has_email_address:
+      
       **Your email address:**
       % if users[0].email == "":
       No email address entered
       % else:
       ${ users[0].email }
       % endif
+      % endif      
   - Edit: users[0].birthdate
     button: |
       **Your birthdate:**
-      ${ users[0].birthdate.format("MM/dd/yyyy") }
+      ${ users[0].birthdate }
   - Edit: users[0].is_employed
     button: |
       **Your employment status:**
@@ -46,8 +51,9 @@ review:
       ${ users[0].occupation if users[0].is_employed else '' }
   - Edit: users[0].resident_date
     button: |
-      **Years in Illinois:**
-      ${ int(users[0].resident_date) }
+      **Lived in Illinois since:**
+      ${ users[0].resident_date }
+    show if: users[0].address.state == "IL"
   - Edit: users[0].use_former_name
     button: |
       **Use former name:**
@@ -85,16 +91,21 @@ review:
       ${ phone_number_formatted(users[1].phone_number) }
       % endif
 
-      **Your email address:**
+      **Do they have an email address?**
+      ${ word(yesno(users[1].has_email_address))}
+      % if users[1].has_email_address:
+      
+      **Their email address:**
       % if users[1].email == "":
       No email address entered
       % else:
       ${ users[1].email }
       % endif
+      % endif      
   - Edit: users[1].birthdate
     button: |
       **Spouse's birthdate:**
-      ${ users[1].birthdate.format("MM/dd/yyyy") }
+      ${ users[1].birthdate }
   - Edit: users[1].is_employed
     button: |
       **Spouse's employment status:**
@@ -103,8 +114,9 @@ review:
       ${ users[1].occupation if users[1].is_employed else '' }
   - Edit: users[1].resident_date
     button: |
-      **Spouse's years in Illinois:**
-      ${ int(users[1].resident_date) }
+      **Spouse lived in Illinois since:**
+      ${ users[1].resident_date }
+    show if: users[1].address.state == "IL"
   - Edit: users[1].use_former_name
     button: |
       **Spouse use former name:**
@@ -150,7 +162,7 @@ review:
   - Edit: marriage_date
     button: |
       **Marriage date:**
-      ${ marriage_date.format("MM/dd/yyyy") }
+      ${ marriage_date }
   - Edit: marriage_state
     button: |
       **Marriage location:** ${ marriage_city }, ${ marriage_state } 
@@ -159,7 +171,7 @@ review:
   - Edit: separation_date
     button: |
       **Separation date:**
-      ${ separation_date.format("MM/dd/yyyy") }
+      ${ separation_date }
   - Edit: case_type_marriage
     button: |
       **Union type:**
@@ -202,6 +214,7 @@ subquestion: |
 #################### SECTION REVIEW - ABOUT YOU #########################
 id: about you review screen
 event: section_about
+section: About you
 question: |
   About you
 subquestion: |
@@ -227,17 +240,22 @@ review:
       % else:
       ${ phone_number_formatted(users[0].phone_number) }
       % endif
-
+      
+      **Do you have an email address?**
+      ${ word(yesno(users[0].has_email_address))}
+      % if users[0].has_email_address:
+      
       **Your email address:**
       % if users[0].email == "":
       No email address entered
       % else:
       ${ users[0].email }
       % endif
+      % endif      
   - Edit: users[0].birthdate
     button: |
       **Your birthdate:**
-      ${ users[0].birthdate.format("MM/dd/yyyy") }
+      ${ users[0].birthdate }
   - Edit: users[0].is_employed
     button: |
       **Your employment status:**
@@ -246,8 +264,9 @@ review:
       ${ users[0].occupation if users[0].is_employed else '' }
   - Edit: users[0].resident_date
     button: |
-      **Years in Illinois:**
-      ${ int(users[0].resident_date) }
+      **Lived in Illinois since:**
+      ${ users[0].resident_date }
+    show if: users[0].address.state == "IL"
   - Edit: users[0].use_former_name
     button: |
       **Use former name:**
@@ -266,6 +285,7 @@ review:
 #################### SECTION REVIEW - ABOUT SPOUSE #########################
 id: about spouse review screen
 event: section_spouse
+section: About your spouse
 question: |
   About your spouse
 subquestion: |
@@ -291,16 +311,21 @@ review:
       ${ phone_number_formatted(users[1].phone_number) }
       % endif
 
-      **Your email address:**
+      **Do they have an email address?**
+      ${ word(yesno(users[1].has_email_address))}
+      % if users[1].has_email_address:
+      
+      **Their email address:**
       % if users[1].email == "":
       No email address entered
       % else:
       ${ users[1].email }
       % endif
+      % endif      
   - Edit: users[1].birthdate
     button: |
       **Spouse's birthdate:**
-      ${ users[1].birthdate.format("MM/dd/yyyy") }
+      ${ users[1].birthdate }
   - Edit: users[1].is_employed
     button: |
       **Spouse's employment status:**
@@ -309,8 +334,9 @@ review:
       ${ users[1].occupation if users[1].is_employed else '' }
   - Edit: users[1].resident_date
     button: |
-      **Spouse's years in Illinois:**
-      ${ int(users[1].resident_date) }
+      **Spouse lived in Illinois since:**
+      ${ users[1].resident_date }
+    show if: users[1].address.state == "IL"
   - Edit: users[1].use_former_name
     button: |
       **Spouse use former name:**
@@ -329,6 +355,7 @@ review:
 #################### SECTION REVIEW - PROPERTY/DEBT #########################
 id: property debt review screen
 event: section_property
+section: Property and debt
 question: |
   Property and debt
 subquestion: |
@@ -362,6 +389,7 @@ review:
 #################### SECTION REVIEW - PROPERTY/DEBT #########################
 id: filing information review screen
 event: section_filing
+section: Filing information
 question: |
   Filing information
 subquestion: |
@@ -370,7 +398,7 @@ review:
   - Edit: marriage_date
     button: |
       **Marriage date:**
-      ${ marriage_date.format("MM/dd/yyyy") }
+      ${ marriage_date }
   - Edit: marriage_state
     button: |
       **Marriage location:** ${ marriage_city }, ${ marriage_state } 
@@ -379,7 +407,7 @@ review:
   - Edit: separation_date
     button: |
       **Separation date:**
-      ${ separation_date.format("MM/dd/yyyy") }
+      ${ separation_date }
   - Edit: case_type_marriage
     button: |
       **Union type:**

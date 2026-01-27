@@ -98,7 +98,9 @@ code: |
   users[1].address.address
   if users[1].address.state == "IL":
     users[1].resident_date
-  if check_cook_county:
+  if check_cook() == False:
+    must_live_in_cook
+  if check_illinois() == False:
     must_live_in_illinois
   users[1].phone_number
   users[1].birthdate
@@ -194,7 +196,7 @@ subquestion: |
   * The yearly income of you and your spouse, and
   * A list of property and debts from the marriage or civil union.
 
-  It could take 15 minutes to 30 minutes to finish this program. You can log in and save your work to return to later. 
+  It could take 15 minutes to 25 minutes to finish this program. You can log in and save your work to return to later. 
  
   ${ collapse_template(help_example) }  
 
@@ -241,6 +243,7 @@ content: |
   - The marriage or civil union lasted less than 8 years.
   - The relationship ended due to unresolved disagreements, and the people are now separated.
   - No children were born or adopted during the relationship. Neither person is pregnant by the other person.
+  - At least one person must currently live in Cook County, and at least one person must have lived in Illinois for the past 90 days.
   - Neither person depends on the other for support, or both agree to waive support rights.
   - Both people agree they do not want support payments from each other.
   - Neither person has any ownership in real estate property.
@@ -490,30 +493,65 @@ fields:
 ---
 id: how long in IL
 question: |
-  How many years have you lived in Illinois?
-fields: 
-  - Years of residence in Illinois: users[0].resident_date
-    datatype: number
-    min: 0
-    max: 150
+  When did you start living in Illinois?
+fields:
+  - Lived in Illinois since: users[0].resident_date
+    datatype: BirthDate
+    alMax: ${ today().format("yyyy-MM-dd") }
+
 ---
-reconsider: True
-depends on:
-  - users[0].address.county
-  - users[1].address.county
 code: |
-  if (users[0].address.county.split()[0].lower() != "cook" and users[1].address.county.split()[0].lower() != "cook"):
-    check_cook_county = True
-  else:
-    check_cook_county = False
+  def check_cook():
+
+    if users[0].address.county[:4].lower() != "cook" and users[1].address.county[:4].lower() != "cook":
+      return False
+  
+    if users[0].address.county[:4].lower() == "cook":
+      return True
+
+    if users[1].address.county[:4].lower() == "cook":
+      return True
+
+    return False
+
 ---
-id: must live in IL
+code: |
+  def check_illinois():
+
+    if users[0].address.state != "IL" and users[1].address.state != "IL":
+      return False
+    
+    if users[0].address.state == "IL":
+      if date_difference(starting=users[0].resident_date, ending=today() ).days >= 90:
+        return True
+    
+    if users[1].address.state == "IL":
+      if date_difference(starting=users[1].resident_date, ending=today() ).days >= 90:
+        return True
+  
+    return False  
+---
+id: must live in Cook
+event: must_live_in_cook
+question: |
+  Sorry
+subquestion: |
+  You or your spouse must live in **Cook County** if you want to file for a joint simplified divorce in Cook County, Illinois.
+  
+  You can still file for a divorce in Illinois. Make the forms you need with ILAO's [Divorce Easy Form](https://www.illinoislegalaid.org/node/30691).
+  
+  If you want to file for divorce outside Illinois, you can use the [**Legal Services Corporation website**](https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help) to find a legal aid organization in another state.
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+id: must live in Illinois
 event: must_live_in_illinois
 question: |
   Sorry
 subquestion: |
-  You or your spouse must live in **Cook County** if you want to file for a joint simplified divorce in Illinois.
-  
+  You or your spouse must live in **Illinois** for at least 90 days if you want to file for a joint simplified divorce in Illinois.
+
   If you want to file for divorce outside Illinois, you can use the [**Legal Services Corporation website**](https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help) to find a legal aid organization in another state.
 buttons:
   - Exit: exit
@@ -650,12 +688,11 @@ fields:
 ---
 id: spouses how long in IL
 question: |
-  How long has ${ users[1].name_full() } lived in Illinois?
-fields: 
-  - Years of residence in Illinois: users[1].resident_date
-    datatype: number
-    min: 0
-    max: 150
+  When did ${ users[1].name_full() } start living in Illinois?
+fields:
+  - Lived in Illinois since: users[1].resident_date
+    datatype: BirthDate
+    alMax: ${ today().format("yyyy-MM-dd") }
 ---
 sets:
   - users[1].aliases[0].first
@@ -693,19 +730,31 @@ subquestion: |
 
   * Any property worth over $100 that either or both of you got during the marriage, and
   * Any debts that either or both of you acquired during the marriage.
+
+  Property includes things like vehicles, furniture, electronics, clothing, jewelry, cash, and bank accounts. Remember that if either of you have any real estate, you don't qualify for a joint simplified divorce.
+
+  Debts can be credit cards, medical bills, parking tickets, or other payments owing for goods or services.
 continue button field: property_intro
 ---
 id: property division 
 question: |
   Do you or your spouse have any property valued at over $100?
+subquestion:
+  Property includes things like vehicles, furniture, electronics, clothing, jewelry, cash, and bank accounts.
+  
+  These are things that either or both of you got during the marriage.
 fields:
   - no label: has_property
     datatype: yesnoradio
 ---
 id: property overview
 question: |
-  Do you or your spouse have any property valued at over $100?
+  Do you or your spouse have any other property valued at over $100?
 subquestion: |
+  Property includes things like vehicles, furniture, electronics, clothing, jewelry, cash, and bank accounts. 
+
+  These are things that either or both of you got during the marriage.
+  
   So far you have told us about:
 
   ${ property_table }
@@ -761,15 +810,21 @@ id: debt intro
 question: |
   Are there any debts or liabilities to be divided?
 subquestion: |
-  This includes any debts that you or your spouse took on during the marriage.
+  Debts can be a credit card balance, medical bills, parking tickets, or other payments owing for goods or services.
+  
+  These include any debts that you or your spouse took on during the marriage.
 fields:
   - no label: has_debts
     datatype: yesnoradio
 ---
 id: additional debts
 question: |
-  Are there any other debts?
+  Do you or your spouse have any other debts?
 subquestion: |
+  Debts can be a credit card balance, medical bills, parking tickets, or other payments owing for goods or services.
+
+  These include any debts that you or your spouse took on during the marriage.  
+  
   So far you have told us about:
 
   ${ debts_table }
@@ -981,7 +1036,7 @@ continue button field: next_steps
 question: |
   Next steps
 subquestion: |
-  After you download your forms, sign them if you and your spouse have not added your e-signature. You can then file or e-file the Joint simplified divorce petition forms with the circuit clerk.
+  After you download your forms, sign them if you and your spouse have not added your e-signature. You can then file or e-file the Joint Petition for Simplified Divorce forms with the circuit clerk.
 
   To get a court date, you may need to file a motion. Check with the circuit clerk on the process. If you need to file a motion, you can use ILAO's [Motion Easy Form](https://www.illinoislegalaid.org/node/30971) to make the forms you need.
 
@@ -1124,7 +1179,16 @@ attachment:
     - "user0_job": ${ users[0].occupation if users[0].is_employed else '' }
     - "user0_income": ${ thousands(users[0].income, show_decimals=True) }
     - "user0_lives_IL": ${ word(yesno(users[0].address.state == "IL")) }
-    - "user0_IL_years": ${ int(users[0].resident_date) if users[0].address.state == "IL" else 'N/A' }
+    - "user0_IL_years": |
+        % if users[0].address.state == "IL":
+        % if date_difference(starting=users[0].resident_date, ending=today() ).years < 1:
+        ${ int(date_difference(starting=users[0].resident_date, ending=today() ).days) } days
+        % else:
+        ${ int(date_difference(starting=users[0].resident_date, ending=today() ).years) }
+        % endif
+        % else:
+        ${ "N/A" }
+        % endif
     - "user0_former_name":  |
         % if users[0].use_former_name and users[1].use_former_name:
         ${ users[0].aliases[0].full(middle="full") + ' and ' + users[1].aliases[0].full(middle="full") }
@@ -1145,7 +1209,16 @@ attachment:
     - "user1_job": ${ users[1].occupation if users[1].is_employed else '' }
     - "user1_income": ${ thousands(users[1].income, show_decimals=True) }
     - "user1_lives_IL": ${ word(yesno(users[1].address.state == "IL")) }
-    - "user1_IL_years": ${ int(users[1].resident_date) if users[1].address.state == "IL" else 'N/A' }
+    - "user1_IL_years": |
+        % if users[1].address.state == "IL":
+        % if date_difference(starting=users[1].resident_date, ending=today() ).years < 1:
+        ${ int(date_difference(starting=users[1].resident_date, ending=today() ).days) } days
+        % else:
+        ${ int(date_difference(starting=users[1].resident_date, ending=today() ).years) }
+        % endif
+        % else:
+        ${ "N/A" }
+        % endif
     - "user1_former_name":  |
         % if users[0].use_former_name and users[1].use_former_name:
         ${ users[0].aliases[0].full(middle="full") + ' and ' + users[1].aliases[0].full(middle="full") }
