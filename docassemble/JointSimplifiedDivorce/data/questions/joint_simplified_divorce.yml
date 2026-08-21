@@ -348,9 +348,11 @@ fields:
   - If either of you have retirement benefits, are they each in your own name and worth $10,000 or less?: retirement_req
     datatype: yesnoradio
     label above field: true
-  - Are both you and your spouse able to support yourselves without spousal maintenance (alimony) from the other person?: support_req
+  - "Are both you and your spouse able to support yourselves without spousal maintenance (alimony) from the other person?": support_req
     datatype: yesnoradio
     label above field: true
+  - note: |
+      To learn more, see ILAO's [**Spousal maintenance payments after a divorce**](https://www.illinoislegalaid.org/node/30356) FAQ.
 ---
 id: property and debts
 Question: |
