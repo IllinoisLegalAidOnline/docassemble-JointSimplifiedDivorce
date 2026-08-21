@@ -193,7 +193,7 @@ subquestion: |
   * Date and place of your marriage or civil union, 
   * Date you and your spouse separated,
   * Addresses for you and your spouse,
-  * The yearly income of you and your spouse, and
+  * The yearly income and occupation of you and your spouse, and
   * A list of property and debts from the marriage or civil union.
 
   It could take 15 minutes to 25 minutes to finish this program. You can log in and save your work to return to later. 
@@ -244,8 +244,7 @@ content: |
   - The relationship ended due to unresolved disagreements, and the people are now separated.
   - No children were born or adopted during the relationship. Neither person is pregnant by the other person.
   - At least one person must currently live in Cook County, and at least one person must have lived in Illinois for the past 90 days.
-  - Neither person depends on the other for support, or both agree to waive support rights.
-  - Both people agree they do not want support payments from each other.
+  - Neither person depends on the other for support, or both agree to waive the right to spousal maintenance (alimony).
   - Neither person has any ownership in real estate property.
   - Neither person has retirement benefits, unless they are in small individual retirement accounts worth less than $10,000 total.
   - The total value of all property they own together (minus any debts) is less than $50,000.
@@ -349,7 +348,7 @@ fields:
   - If either of you have retirement benefits, are they each in your own name and worth $10,000 or less?: retirement_req
     datatype: yesnoradio
     label above field: true
-  - Are both you and your spouse able to support yourselves without help from the other person?: support_req
+  - Are both you and your spouse able to support yourselves without spousal maintenance (alimony) from the other person?: support_req
     datatype: yesnoradio
     label above field: true
 ---
@@ -482,6 +481,8 @@ fields:
     datatype: yesnoradio
   - What is your occupation?: users[0].occupation
     maxlength: 40
+    help: |
+      If you have more than one, list them separated by a comma.
     show if: users[0].is_employed
 ---
 id: income sources
@@ -677,6 +678,8 @@ fields:
     datatype: yesnoradio
   - What is their occupation?: users[1].occupation
     maxlength: 40
+    help: |
+      If they have more than one, list them separated by a comma.
     show if: users[1].is_employed
 ---
 id: spouses income sources
@@ -998,7 +1001,7 @@ subquestion: |
       <li>Everything on the forms is true and correct, or have been informed or believe it is true and correct, and</li>
       <li>Understand that making a false statement on the forms is perjury and has penalties provided by law.</li>
     </ul></p>
-  <p>See the <a href="https://www.ilga.gov/legislation/ilcs/documents/073500050k1-109.htm"><b>Code of Civil Procedure, 735 ILCS 5/1-109</b></a> for more information.</p>
+  <p>See the <a href="https://www.ilga.gov/legislation/ilcs/documents/073500050k1-109.htm"><b>Illinois Code of Civil Procedure, 735 ILCS 5/1-109</b></a> for more information.</p>
   </div>
 fields:
   - "Add e-signature?": users[0].e_signature
@@ -1022,7 +1025,7 @@ subquestion: |
       <li>Everything on the forms is true and correct, or have been informed or believe it is true and correct, and</li>
       <li>Understand that making a false statement on the forms is perjury and has penalties provided by law.</li>
     </ul></p>
-  <p>See the <a href="https://www.ilga.gov/legislation/ilcs/documents/073500050k1-109.htm"><b>Code of Civil Procedure, 735 ILCS 5/1-109</b></a> for more information.</p>
+  <p>See the <a href="https://www.ilga.gov/legislation/ilcs/documents/073500050k1-109.htm"><b>Illinois Code of Civil Procedure, 735 ILCS 5/1-109</b></a> for more information.</p>
   </div>
 fields:
   - "Add e-signature?": users[1].e_signature
